@@ -136,10 +136,20 @@
         }
 
         // 拨号功能
-        function callNumber(number) {
-            speak(`正在拨打${number}`)
-            window.location.href = `tel:${number}`
-        }
+       function callNumber(number) {
+    // 电话号码格式验证（支持国际/国内格式）
+    const phoneRegex = /^(?:\+?86)?1[3-9]\d{9}$|^(?:\+?\d{1,4})?[-.\s]?(?:\d{2,4}[-.\s]?){2,5}\d$/;
+    
+    if (!phoneRegex.test(number)) {
+        alert("请输入有效的电话号码（示例：13800138000 或 010-12345678）");
+        speak("号码格式错误");
+        return;
+    }
+
+    // 语音提示和拨号逻辑
+    speak(`正在拨打${number}`);
+    window.location.href = `tel:${number}`;
+}
 
         // 语音提示
         function speak(text) {
