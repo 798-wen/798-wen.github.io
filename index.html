@@ -2,7 +2,192 @@
 <html lang="zh-CN" translate="no">
 <head>现在给这个代码新添一个设置功能，设置功能在最下面。在点进设置后，用户可以修改“呼叫亲属”“社区医生”、“物业联系”的电话号码，以及“我的基础病”信息。修改好后，将它插入进之前的代码把整个新代码发给我
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1<!DOCTYPE html>
+<html lang="zh-CN" translate="no">
+<head>
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>老年智能手环助手</title>
+    <style>
+        /* 新增设置界面样式 */
+        .settings-form {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin: 20px auto;
+            max-width: 500px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            font-size: 18px;
+            margin-bottom: 8px;
+            color: #333;
+        }
+        .form-input {
+            width: 100%;
+            padding: 12px;
+            font-size: 16px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-sizing: border-box;
+        }
+        .save-btn {
+            background: #27ae60;
+            width: 100%;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 修改主菜单新增设置按钮 -->
+        <section id="main-menu">
+            <button class="menu-btn" onclick="showSection('emergency')">紧急求救</button>
+            <button class="menu-btn" onclick="showSection('family')">呼叫亲属</button>
+            <button class="menu-btn" onclick="showSection('doctor')">社区医生</button>
+            <button class="menu-btn" onclick="showSection('property')">物业联系</button>
+            <button class="menu-btn" onclick="showSection('ai-chat')">万能问答</button>
+            <button class="menu-btn" onclick="showSection('medical')">我的基础病</button>
+            <button class="menu-btn" onclick="showSection('settings')">⚙️ 系统设置</button>
+        </section>
+
+        <!-- 新增设置界面（位于所有界面之后） -->
+        <section id="settings" class="hidden">
+            <h1 aria-label="系统设置">⚙️ 系统设置</h1>
+            <div class="settings-form">
+                <div class="form-group">
+                    <label>亲属电话号码：</label>
+                    <input type="tel" id="family-number" class="form-input" 
+                           placeholder="例如：13800138000" pattern="[0-9-]+">
+                </div>
+                <div class="form-group">
+                    <label>社区医生电话：</label>
+                    <input type="tel" id="doctor-number" class="form-input"
+                           placeholder="例如：13900139000" pattern="[0-9-]+">
+                </div>
+                <div class="form-group">
+                    <label>物业联系电话：</label>
+                    <input type="tel" id="property-number" class="form-input"
+                           placeholder="例如：010-12345678" pattern="[0-9-]+">
+                </div>
+                <div class="form-group">
+                    <label>基础疾病（用逗号分隔）：</label>
+                    <input type="text" id="medical-conditions" class="form-input"
+                           placeholder="例如：高血压,糖尿病">
+                </div>
+                <div class="form-group">
+                    <label>过敏史（用逗号分隔）：</label>
+                    <input type="text" id="medical-allergies" class="form-input"
+                           placeholder="例如：青霉素,花粉">
+                </div>
+                <div class="form-group">
+                    <label>紧急联系人：</label>
+                    <input type="text" id="emergency-contact" class="form-input"
+                           placeholder="格式：张医生 13800138000">
+                </div>
+
+                <button class="menu-btn save-btn" onclick="saveSettings()">💾 保存设置</button>
+                <button class="menu-btn back-btn" onclick="backToMenu()">← 返回主菜单</button>
+            </div>
+        </section>
+
+        <!-- 原有其他界面保持不变 -->
+    </div>
+
+    <script>
+        // ================== 新增设置功能 ==================
+        function loadSettings() {
+            // 加载电话号码设置
+            const savedNumbers = JSON.parse(localStorage.getItem('phoneSettings')) || {};
+            phoneNumbers.family = savedNumbers.family || '13800138000';
+            phoneNumbers.doctor = savedNumbers.doctor || '13900139000';
+            phoneNumbers.property = savedNumbers.property || '010-12345678';
+
+            // 加载医疗信息
+            const savedMedical = JSON.parse(localStorage.getItem('medicalInfo')) || {
+                conditions: ["高血压", "糖尿病"],
+                allergies: ["青霉素"],
+                emergencyContact: "张医生 13800138000"
+            };
+            medicalInfo = savedMedical;
+
+            // 填充设置表单
+            document.getElementById('family-number').value = phoneNumbers.family;
+            document.getElementById('doctor-number').value = phoneNumbers.doctor;
+            document.getElementById('property-number').value = phoneNumbers.property;
+            document.getElementById('medical-conditions').value = medicalInfo.conditions.join(",");
+            document.getElementById('medical-allergies').value = medicalInfo.allergies.join(",");
+            document.getElementById('emergency-contact').value = medicalInfo.emergencyContact;
+        }
+
+        function saveSettings() {
+            // 验证并保存电话号码
+            const newNumbers = {
+                family: document.getElementById('family-number').value.trim(),
+                doctor: document.getElementById('doctor-number').value.trim(),
+                property: document.getElementById('property-number').value.trim()
+            };
+
+            const phoneRegex = /^(?:\+?86)?(?:1[3-9]\d{9}|0\d{2,3}-?\d{7,8})$/;
+            for (const key in newNumbers) {
+                if (!phoneRegex.test(newNumbers[key])) {
+                    alert(`请输入有效的${getChineseName(key)}号码`);
+                    return;
+                }
+            }
+
+            // 验证并保存医疗信息
+            const newMedical = {
+                conditions: document.getElementById('medical-conditions').value.split(',').map(s => s.trim()),
+                allergies: document.getElementById('medical-allergies').value.split(',').map(s => s.trim()),
+                emergencyContact: document.getElementById('emergency-contact').value.trim()
+            };
+
+            if (newMedical.conditions.some(c => !c) || 
+                newMedical.allergies.some(a => !a) || 
+                !newMedical.emergencyContact) {
+                alert("请填写完整的健康信息");
+                return;
+            }
+
+            // 保存到本地存储
+            localStorage.setItem('phoneSettings', JSON.stringify(newNumbers));
+            localStorage.setItem('medicalInfo', JSON.stringify(newMedical));
+            
+            // 更新运行时数据
+            Object.assign(phoneNumbers, newNumbers);
+            medicalInfo = newMedical;
+            
+            // 更新界面显示
+            updateMedicalDisplay();
+            initCallSections(); // 重新初始化呼叫按钮
+            alert("设置已保存！");
+            backToMenu();
+        }
+
+        function getChineseName(key) {
+            return {
+                family: '亲属',
+                doctor: '社区医生',
+                property: '物业'
+            }[key];
+        }
+
+        // 初始化时加载设置
+        document.addEventListener('DOMContentLoaded', () => {
+            loadSettings();
+            initCallSections();
+            speak("欢迎使用智能手环助手");
+        });
+        // ================== 设置功能结束 ==================
+    </script>
+</body>
+</html>.0">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <title>老年智能手环助手</title>
     <style>
