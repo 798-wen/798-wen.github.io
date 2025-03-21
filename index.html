@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>老年智能手环助手</title>
+    <style>
+        :root {
+            --primary-color: #E74C3C;
+            --secondary-color: #3498DB;
+            --text-size: 24px;
+        }
+
+        body {
+            font-family: "微软雅黑", Arial, sans-serif;
+            background: #F8F9FA;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .menu-btn {
+            display: block;
+            width: 90%;
+            margin: 15px auto;
+            padding: 25px;
+            font-size: var(--text-size);
+            border-radius: 15px;
+            border: none;
+            background: var(--primary-color);
+            color: white;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .back-btn {
+            background: #7F8C8D;
+            width: 50%;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        #ai-input {
+            width: 80%;
+            padding: 15px;
+            font-size: 20px;
+            margin: 20px 0;
+        }
+
+        #medical-info {
+            background: #FFF3CD;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 主菜单 -->
+        <section id="main-menu">
+            <button class="menu-btn" onclick="showSection('emergency')">紧急求救</button>
+            <button class="menu-btn" onclick="showSection('family')">呼叫亲属</button>
+            <button class="menu-btn" onclick="showSection('doctor')">社区医生</button>
+            <button class="menu-btn" onclick="showSection('property')">物业联系</button>
+            <button class="menu-btn" onclick="showSection('ai-chat')">万能问答</button>
+            <button class="menu-btn" onclick="showSection('medical')">我的基础病</button>
+        </section>
+
+        <!-- 紧急呼叫界面 -->
+        <section id="emergency" class="hidden">
+            <h1 aria-label="紧急求救">🆘 正在呼叫急救中心</h1>
+            <button class="menu-btn" onclick="callNumber('120')">立即拨打120</button>
+            <button class="menu-btn back-btn" onclick="backToMenu()">返回</button>
+        </section>
+
+        <!-- 其他呼叫界面（模板） -->
+        <template id="call-template">
+            <h1></h1>
+            <button class="menu-btn" onclick="callNumber('')">立即拨打</button>
+            <button class="menu-btn back-btn" onclick="backToMenu()">返回</button>
+        </template>
+
+        <!-- AI问答界面 -->
+        <section id="ai-chat" class="hidden">
+            <h1 aria-label="智能问答">❓ 万能问答助手</h1>
+            <input type="text" id="ai-input" placeholder="请输入您的问题...">
+            <button class="menu-btn" onclick="getAIResponse()">提交问题</button>
+            <div id="ai-response" style="padding:20px;font-size:var(--text-size)"></div>
+            <button class="menu-btn back-btn" onclick="backToMenu()">返回</button>
+        </section>
+
+        <!-- 基础病信息界面 -->
+        <section id="medical" class="hidden">
+            <h1 aria-label="基础病信息">📋 我的健康档案</h1>
+            <div id="medical-info">
+                <p>加载中...</p>
+            </div>
+            <button class="menu-btn" onclick="editMedicalInfo()">修改信息</button>
+            <button class="menu-btn back-btn" onclick="backToMenu()">返回</button>
+        </section>
+    </div>
+
+    <script>
+        // 电话号码配置
+        const phoneNumbers = {
+            family: '13800138000',  // 替换为亲属电话
+            doctor: '13900139000',  // 替换为社区医生电话
+            property: '010-12345678'  // 替换为物业电话
+        }
+
+        // 初始化医疗信息
+        let medicalInfo = JSON.parse(localStorage.getItem('medicalInfo')) || {
+            conditions: ["高血压", "糖尿病"],
+            allergies: ["青霉素"],
+            emergencyContact: "张医生 13800138000"
+        }
+
+        // 界面切换控制
+        function showSection(sectionId) {
+            document.querySelectorAll('section').forEach(s => s.classList.add('hidden'))
+            document.getElementById(sectionId).classList.remove('hidden')
+            
+            if(sectionId === 'medical') {
+                updateMedicalDisplay()
+            }
+        }
+
+        function backToMenu() {
+            showSection('main-menu')
+        }
+
+        // 拨号功能
+        function callNumber(number) {
+            speak(`正在拨打${number}`)
+            window.location.href = `tel:${number}`
+        }
+
+        // 语音提示
+        function speak(text) {
+            const synth = window.speechSynthesis
+            const utterance = new SpeechSynthesisUtterance(text)
+            utterance.lang = 'zh-CN'
+            synth.speak(utterance)
+        }
+
+        // AI问答功能（需替换为真实API）
+        async function getAIResponse() {
+            const question = document.getElementById('ai-input').value
+            const responseBox = document.getElementById('ai-response')
+            
+            responseBox.innerHTML = '思考中...'
+            
+            try {
+                // 示例使用模拟数据，实际应替换为API调用
+                const response = await simulateAIResponse(question)
+                responseBox.innerHTML = response
+                speak("已收到回答")
+            } catch (error) {
+                responseBox.innerHTML = '暂时无法回答问题，请稍后再试'
+                speak("网络连接失败")
+            }
+        }
+
+        async function simulateAIResponse(question) {
+            // 模拟延迟
+            await new Promise(resolve => setTimeout(resolve, 1000))
+            
+            // 简单关键词匹配
+            const responses = {
+                "药": "请按照医生嘱咐定时服药，不要自行调整剂量",
+                "疼": "如果持续疼痛，请立即联系您的家庭医生",
+                "默认": "我已记录您的问题，稍后会有专人联系您解答"
+            }
+
+            return Object.keys(responses).find(key => question.includes(key)) 
+                   ? responses[Object.keys(responses).find(key => question.includes(key))] 
+                   : responses['默认']
+        }
+
+        // 医疗信息管理
+        function updateMedicalDisplay() {
+            const infoBox = document.getElementById('medical-info')
+            infoBox.innerHTML = `
+                <h2>现有基础疾病</h2>
+                <ul>
+                    ${medicalInfo.conditions.map(c => `<li>${c}</li>`).join('')}
+                </ul>
+                <h2>过敏史</h2>
+                <ul>
+                    ${medicalInfo.allergies.map(a => `<li>${a}</li>`).join('')}
+                </ul>
+                <h2>紧急联系人</h2>
+                <p>${medicalInfo.emergencyContact}</p>
+            `
+        }
+
+        function editMedicalInfo() {
+            // 此处可扩展为表单编辑功能
+            const newInfo = prompt("请输入更新后的医疗信息（JSON格式）", JSON.stringify(medicalInfo))
+            try {
+                medicalInfo = JSON.parse(newInfo)
+                localStorage.setItem('medicalInfo', newInfo)
+                updateMedicalDisplay()
+            } catch {
+                alert("输入格式错误")
+            }
+        }
+
+        // 初始化动态呼叫界面
+        function initCallSections() {
+            const template = document.getElementById('call-template')
+            
+            ;['family', 'doctor', 'property'].forEach(type => {
+                const section = document.createElement('section')
+                section.className = 'hidden'
+                section.id = type
+                section.innerHTML = template.innerHTML
+                section.querySelector('h1').textContent = `📞 正在呼叫${getTitle(type)}`
+                section.querySelector('button').onclick = () => callNumber(phoneNumbers[type])
+                document.querySelector('.container').appendChild(section)
+            })
+        }
+
+        function getTitle(type) {
+            return {
+                family: '亲属',
+                doctor: '社区医生',
+                property: '物业服务'
+            }[type]
+        }
+
+        // 初始化执行
+        initCallSections()
+        speak("欢迎使用智能手环助手")
+    </script>
+</body>
+</html>
