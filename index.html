@@ -206,12 +206,20 @@
             position: fixed;
             top: 20px;
             left: 20px;
-            font-size: 24px;
+            font-size: 18px;
             background: rgba(255, 255, 255, 0.9);
             padding: 10px 20px;
             border-radius: 15px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
             z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .weather-icon {
+            width: 24px;
+            height: 24px;
         }
     </style>
 </head>
@@ -220,6 +228,7 @@
         <!-- 天气信息 -->
         <div class="weather-info" id="weather-info">
             <span id="date-time"></span>
+            <img id="weather-icon" class="weather-icon" src="" alt="天气">
             <span id="weather"></span>
         </div>
 
@@ -374,7 +383,13 @@
                     
                     if (voiceInputBtn && voiceInputBtn.classList.contains('recording')) {
                         // 语音输入模式
-                        document.getElementById('chat-input').value = text;
+                        const chatInput = document.getElementById('chat-input');
+                        chatInput.value = text;
+                        // 实时显示识别的文字
+                        const tempDiv = document.createElement('div');
+                        tempDiv.className = 'message user-message';
+                        tempDiv.textContent = text;
+                        document.getElementById('chat-messages').appendChild(tempDiv);
                     } else {
                         // 命令模式
                         handleVoiceCommand(text);
@@ -387,6 +402,18 @@
                 };
 
                 recognition.onend = function() {
+                    if (isListening) {
+                        try {
+                            recognition.start();
+                        } catch (error) {
+                            console.error('重新启动语音识别失败:', error);
+                        }
+                    }
+                };
+
+                // 添加错误恢复机制
+                recognition.onnomatch = function() {
+                    console.log('没有识别到语音，重新开始识别');
                     if (isListening) {
                         try {
                             recognition.start();
@@ -413,6 +440,12 @@
                 voiceInputBtn.classList.remove('recording');
                 voiceInputBtn.textContent = '按住说话';
                 stopListening();
+                // 清除临时显示的消息
+                const messages = document.getElementById('chat-messages');
+                const lastMessage = messages.lastElementChild;
+                if (lastMessage && lastMessage.classList.contains('user-message')) {
+                    messages.removeChild(lastMessage);
+                }
             }
         }
 
@@ -519,11 +552,29 @@
                 if(sectionId === 'medical') updateMedicalDisplay();
                 if(sectionId === 'settings') loadSettings();
                 if(sectionId === 'ai-chat') loadChatHistory();
+                
+                // 控制天气信息显示
+                const weatherInfo = document.getElementById('weather-info');
+                weatherInfo.style.display = sectionId === 'main-menu' ? 'flex' : 'none';
+                
+                // 添加语音提示
+                switch(sectionId) {
+                    case 'doctor':
+                        speak('社区医生');
+                        break;
+                    case 'ai-chat':
+                        speak('万能问答');
+                        break;
+                    case 'settings':
+                        speak('系统设置');
+                        break;
+                }
             }
         }
 
         // 返回主菜单
         function backToMenu() {
+            speak('返回');
             showSection('main-menu');
         }
 
@@ -729,7 +780,6 @@
         function updateDateTime() {
             const now = new Date();
             const dateStr = now.toLocaleDateString('zh-CN', { 
-                year: 'numeric', 
                 month: 'long', 
                 day: 'numeric', 
                 weekday: 'long' 
@@ -744,17 +794,43 @@
         // 获取天气信息
         async function getWeather() {
             try {
-                // 这里使用高德地图API获取天气信息，需要替换为您的API密钥
                 const response = await fetch(`https://restapi.amap.com/v3/weather/weatherInfo?key=958751838a76784f2b411f8bfb469548&city=110101`);
                 const data = await response.json();
                 if (data.status === '1' && data.lives && data.lives[0]) {
                     const weather = data.lives[0];
-                    document.getElementById('weather').textContent = ` ${weather.temperature}°C ${weather.weather}`;
+                    document.getElementById('weather').textContent = `${weather.temperature}°C ${weather.weather}`;
+                    
+                    // 根据天气设置图标
+                    const weatherIcon = document.getElementById('weather-icon');
+                    const weatherText = weather.weather.toLowerCase();
+                    if (weatherText.includes('晴')) {
+                        weatherIcon.src = 'https://api.iconify.design/emojione:sun.svg';
+                    } else if (weatherText.includes('多云')) {
+                        weatherIcon.src = 'https://api.iconify.design/emojione:partly-sunny.svg';
+                    } else if (weatherText.includes('雨')) {
+                        weatherIcon.src = 'https://api.iconify.design/emojione:umbrella-with-rain-drops.svg';
+                    } else if (weatherText.includes('雪')) {
+                        weatherIcon.src = 'https://api.iconify.design/emojione:snowflake.svg';
+                    } else {
+                        weatherIcon.src = 'https://api.iconify.design/emojione:cloud.svg';
+                    }
                 }
             } catch (error) {
                 console.error('获取天气信息失败:', error);
             }
         }
+
+        // 防止页面闪退
+        window.addEventListener('beforeunload', function(e) {
+            if (recognition && isListening) {
+                recognition.stop();
+            }
+        });
+
+        // 修改所有返回按钮的文字
+        document.querySelectorAll('.back-btn').forEach(btn => {
+            btn.textContent = '← 返回';
+        });
 
         // 初始化
         document.addEventListener('DOMContentLoaded', () => {
