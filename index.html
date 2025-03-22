@@ -341,57 +341,6 @@
             document.getElementById('display-contact').textContent = medicalInfo.emergencyContact;
         }
 
-        // 处理紧急求救
-        function handleEmergency() {
-            window.location.href = 'tel:120';
-        }
-
-        // 处理呼叫亲属
-        function handleFamilyCall() {
-            window.location.href = `tel:${phoneNumbers.family}`;
-        }
-
-        // 处理物业联系
-        function handlePropertyCall() {
-            window.location.href = `tel:${phoneNumbers.property}`;
-        }
-
-        // 处理社区医生电话
-        function handleDoctorCall() {
-            window.location.href = `tel:${phoneNumbers.doctor}`;
-        }
-
-        // 发送消息给医生
-        function sendDoctorMessage() {
-            const message = document.getElementById('doctor-message-content').value.trim();
-            if (!message) {
-                alert('请输入要发送的消息内容');
-                return;
-            }
-
-            // 使用短信API发送消息
-            window.location.href = `sms:${phoneNumbers.doctor}?body=${encodeURIComponent(message)}`;
-            
-            // 清空输入框
-            document.getElementById('doctor-message-content').value = '';
-            
-            // 返回医生选项界面
-            showSection('doctor');
-        }
-
-        // 加载聊天历史
-        function loadChatHistory() {
-            const chatMessages = document.getElementById('chat-messages');
-            chatMessages.innerHTML = '';
-            chatHistory.forEach(msg => {
-                const messageDiv = document.createElement('div');
-                messageDiv.className = `message ${msg.type}-message`;
-                messageDiv.textContent = msg.content;
-                chatMessages.appendChild(messageDiv);
-            });
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-        }
-
         // 发送消息
         async function sendMessage() {
             const input = document.getElementById('chat-input');
@@ -403,15 +352,14 @@
             input.value = '';
 
             try {
-                // 使用豆包AI的免费API
-                const response = await fetch('https://api.doubao.com/v1/chat/completions', {
+                const response = await fetch('https://ark.cn-beijing.volces.com/api/v3/chat/completions', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'Authorization': 'Bearer 76e27114-ba0d-4348-a75f-5af0099d12ca'
                     },
                     body: JSON.stringify({
-                        model: "doubao-text-v1",
+                        model: "doubao-1-5-vision-pro-32k-250115",
                         messages: [
                             {
                                 role: "system",
@@ -421,9 +369,7 @@
                                 role: "user",
                                 content: message
                             }
-                        ],
-                        temperature: 0.7,
-                        max_tokens: 1000
+                        ]
                     })
                 });
 
@@ -443,6 +389,81 @@
                 console.error('AI响应错误:', error);
                 addMessage('抱歉，我现在无法回答您的问题。请稍后再试。', 'ai');
             }
+        }
+
+        // 处理紧急求救
+        function handleEmergency() {
+            const phoneNumber = '120';
+            if (navigator.userAgent.match(/iPhone|iPad|iPod/i)) {
+                window.location.href = `tel://${phoneNumber}`;
+            } else {
+                window.location.href = `tel:${phoneNumber}`;
+            }
+        }
+
+        // 处理呼叫亲属
+        function handleFamilyCall() {
+            const phoneNumber = phoneNumbers.family;
+            if (navigator.userAgent.match(/iPhone|iPad|iPod/i)) {
+                window.location.href = `tel://${phoneNumber}`;
+            } else {
+                window.location.href = `tel:${phoneNumber}`;
+            }
+        }
+
+        // 处理物业联系
+        function handlePropertyCall() {
+            const phoneNumber = phoneNumbers.property;
+            if (navigator.userAgent.match(/iPhone|iPad|iPod/i)) {
+                window.location.href = `tel://${phoneNumber}`;
+            } else {
+                window.location.href = `tel:${phoneNumber}`;
+            }
+        }
+
+        // 处理社区医生电话
+        function handleDoctorCall() {
+            const phoneNumber = phoneNumbers.doctor;
+            if (navigator.userAgent.match(/iPhone|iPad|iPod/i)) {
+                window.location.href = `tel://${phoneNumber}`;
+            } else {
+                window.location.href = `tel:${phoneNumber}`;
+            }
+        }
+
+        // 发送消息给医生
+        function sendDoctorMessage() {
+            const message = document.getElementById('doctor-message-content').value.trim();
+            if (!message) {
+                alert('请输入要发送的消息内容');
+                return;
+            }
+
+            const phoneNumber = phoneNumbers.doctor;
+            if (navigator.userAgent.match(/iPhone|iPad|iPod/i)) {
+                window.location.href = `sms://${phoneNumber}&body=${encodeURIComponent(message)}`;
+            } else {
+                window.location.href = `sms:${phoneNumber}?body=${encodeURIComponent(message)}`;
+            }
+            
+            // 清空输入框
+            document.getElementById('doctor-message-content').value = '';
+            
+            // 返回医生选项界面
+            showSection('doctor');
+        }
+
+        // 加载聊天历史
+        function loadChatHistory() {
+            const chatMessages = document.getElementById('chat-messages');
+            chatMessages.innerHTML = '';
+            chatHistory.forEach(msg => {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `message ${msg.type}-message`;
+                messageDiv.textContent = msg.content;
+                chatMessages.appendChild(messageDiv);
+            });
+            chatMessages.scrollTop = chatMessages.scrollHeight;
         }
 
         // 添加消息到聊天记录
@@ -465,6 +486,10 @@
         document.addEventListener('DOMContentLoaded', () => {
             initCallSections();
             updateMedicalDisplay();
+            // 请求通知权限
+            if ('Notification' in window) {
+                Notification.requestPermission();
+            }
         });
     </script>
 </body>
