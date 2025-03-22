@@ -149,10 +149,24 @@
             background: var(--secondary-color);
             color: white;
             border: none;
-            padding: 10px 20px;
+            padding: 15px 30px;
             border-radius: 8px;
             cursor: pointer;
             margin-top: 10px;
+            font-size: 32px;
+        }
+
+        .voice-status {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 24px;
+            display: none;
         }
     </style>
 </head>
@@ -188,16 +202,20 @@
                     <input type="tel" class="settings-input" id="set-property" placeholder="请输入物业电话">
                 </div>
                 <div class="setting-item">
+                    <label>紧急联系人1：</label>
+                    <input type="text" class="settings-input" id="set-contact1" placeholder="例如：张医生 13800138000">
+                </div>
+                <div class="setting-item">
+                    <label>紧急联系人2：</label>
+                    <input type="text" class="settings-input" id="set-contact2" placeholder="例如：李医生 13800138001">
+                </div>
+                <div class="setting-item">
                     <label>现有疾病（用逗号分隔）：</label>
                     <input type="text" class="settings-input" id="set-conditions" placeholder="例如：高血压,糖尿病">
                 </div>
                 <div class="setting-item">
                     <label>过敏药物（用逗号分隔）：</label>
                     <input type="text" class="settings-input" id="set-allergies" placeholder="例如：青霉素">
-                </div>
-                <div class="setting-item">
-                    <label>紧急联系人：</label>
-                    <input type="text" class="settings-input" id="set-contact" placeholder="例如：张医生 13800138000">
                 </div>
             </div>
             <button class="menu-btn" onclick="saveSettings()">保存设置</button>
@@ -228,8 +246,12 @@
                     <p id="display-allergies"></p>
                 </div>
                 <div class="setting-item">
-                    <label>紧急联系人：</label>
-                    <p id="display-contact"></p>
+                    <label>紧急联系人1：</label>
+                    <p id="display-contact1"></p>
+                </div>
+                <div class="setting-item">
+                    <label>紧急联系人2：</label>
+                    <p id="display-contact2"></p>
                 </div>
             </div>
             <button class="menu-btn back-btn" onclick="backToMenu()">← 返回主菜单</button>
@@ -255,6 +277,9 @@
             </div>
             <button class="menu-btn back-btn" onclick="showSection('doctor')">← 返回</button>
         </section>
+
+        <!-- 添加语音状态显示 -->
+        <div id="voice-status" class="voice-status">正在听您说...</div>
     </div>
 
     <script>
@@ -269,11 +294,78 @@
         let medicalInfo = JSON.parse(localStorage.getItem('medicalInfo')) || {
             conditions: ["高血压", "糖尿病"],
             allergies: ["青霉素"],
-            emergencyContact: "张医生 13800138000"
+            emergencyContact1: "张医生 13800138000",
+            emergencyContact2: "李医生 13800138001"
         };
 
         // 初始化聊天记录
         let chatHistory = JSON.parse(localStorage.getItem('chatHistory')) || [];
+
+        // 语音识别相关变量
+        let recognition = null;
+        let isListening = false;
+
+        // 初始化语音识别
+        function initSpeechRecognition() {
+            if ('webkitSpeechRecognition' in window) {
+                recognition = new webkitSpeechRecognition();
+                recognition.continuous = true;
+                recognition.interimResults = true;
+                recognition.lang = 'zh-CN';
+
+                recognition.onresult = function(event) {
+                    const result = event.results[event.results.length - 1];
+                    const text = result[0].transcript.trim();
+                    handleVoiceCommand(text);
+                };
+
+                recognition.onerror = function(event) {
+                    console.error('语音识别错误:', event.error);
+                    stopListening();
+                };
+            }
+        }
+
+        // 处理语音命令
+        function handleVoiceCommand(text) {
+            console.log('识别到的语音:', text);
+            
+            // 紧急求救相关命令
+            if (text.includes('紧急求救') || text.includes('救命')) {
+                handleEmergency();
+            }
+            // 呼叫亲属相关命令
+            else if (text.includes('打电话给儿子') || text.includes('打电话给女儿') || 
+                     text.includes('呼叫亲属') || text.includes('打电话给家人')) {
+                handleFamilyCall();
+            }
+            // 呼叫医生相关命令
+            else if (text.includes('打电话给医生') || text.includes('呼叫医生')) {
+                handleDoctorCall();
+            }
+            // 呼叫物业相关命令
+            else if (text.includes('打电话给物业') || text.includes('呼叫物业')) {
+                handlePropertyCall();
+            }
+        }
+
+        // 开始语音识别
+        function startListening() {
+            if (recognition && !isListening) {
+                recognition.start();
+                isListening = true;
+                document.getElementById('voice-status').style.display = 'block';
+            }
+        }
+
+        // 停止语音识别
+        function stopListening() {
+            if (recognition && isListening) {
+                recognition.stop();
+                isListening = false;
+                document.getElementById('voice-status').style.display = 'none';
+            }
+        }
 
         // 显示设置界面时加载当前设置
         function loadSettings() {
@@ -282,7 +374,8 @@
             document.getElementById('set-property').value = phoneNumbers.property;
             document.getElementById('set-conditions').value = medicalInfo.conditions.join(', ');
             document.getElementById('set-allergies').value = medicalInfo.allergies.join(', ');
-            document.getElementById('set-contact').value = medicalInfo.emergencyContact;
+            document.getElementById('set-contact1').value = medicalInfo.emergencyContact1;
+            document.getElementById('set-contact2').value = medicalInfo.emergencyContact2;
         }
 
         // 保存设置
@@ -308,7 +401,8 @@
             medicalInfo = {
                 conditions: document.getElementById('set-conditions').value.split(',').map(s => s.trim()),
                 allergies: document.getElementById('set-allergies').value.split(',').map(s => s.trim()),
-                emergencyContact: document.getElementById('set-contact').value.trim()
+                emergencyContact1: document.getElementById('set-contact1').value.trim(),
+                emergencyContact2: document.getElementById('set-contact2').value.trim()
             };
             localStorage.setItem('medicalInfo', JSON.stringify(medicalInfo));
             
@@ -340,7 +434,8 @@
         function updateMedicalDisplay() {
             document.getElementById('display-conditions').textContent = medicalInfo.conditions.join(', ');
             document.getElementById('display-allergies').textContent = medicalInfo.allergies.join(', ');
-            document.getElementById('display-contact').textContent = medicalInfo.emergencyContact;
+            document.getElementById('display-contact1').textContent = medicalInfo.emergencyContact1;
+            document.getElementById('display-contact2').textContent = medicalInfo.emergencyContact2;
         }
 
         // 发送消息
@@ -402,77 +497,59 @@
         function handleEmergency() {
             speak('紧急求救');
             const phoneNumber = '120';
-            if (navigator.userAgent.match(/iPhone|iPad|iPod/i)) {
-                // Safari浏览器特殊处理
-                const iframe = document.createElement('iframe');
-                iframe.style.display = 'none';
-                document.body.appendChild(iframe);
-                iframe.contentWindow.location.href = `tel://${phoneNumber}`;
-                setTimeout(() => {
-                    document.body.removeChild(iframe);
-                    // 延迟跳转到基础病页面
-                    setTimeout(() => {
-                        showSection('medical');
-                    }, 1000);
-                }, 100);
-            } else {
-                window.location.href = `tel:${phoneNumber}`;
-                // 延迟跳转到基础病页面
-                setTimeout(() => {
-                    showSection('medical');
-                }, 1000);
+            
+            // 保持屏幕常亮
+            if ('wakeLock' in navigator) {
+                navigator.wakeLock.request('screen');
             }
+
+            // 使用a标签方式处理通话
+            const link = document.createElement('a');
+            link.href = `tel:${phoneNumber}`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            // 延迟3秒后显示基础病页面
+            setTimeout(() => {
+                showSection('medical');
+            }, 3000);
         }
 
         // 处理呼叫亲属
         function handleFamilyCall() {
             speak('呼叫亲属');
             const phoneNumber = phoneNumbers.family;
-            if (navigator.userAgent.match(/iPhone|iPad|iPod/i)) {
-                const iframe = document.createElement('iframe');
-                iframe.style.display = 'none';
-                document.body.appendChild(iframe);
-                iframe.contentWindow.location.href = `tel://${phoneNumber}`;
-                setTimeout(() => {
-                    document.body.removeChild(iframe);
-                }, 100);
-            } else {
-                window.location.href = `tel:${phoneNumber}`;
-            }
+            
+            const link = document.createElement('a');
+            link.href = `tel:${phoneNumber}`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         }
 
         // 处理物业联系
         function handlePropertyCall() {
             speak('物业联系');
             const phoneNumber = phoneNumbers.property;
-            if (navigator.userAgent.match(/iPhone|iPad|iPod/i)) {
-                const iframe = document.createElement('iframe');
-                iframe.style.display = 'none';
-                document.body.appendChild(iframe);
-                iframe.contentWindow.location.href = `tel://${phoneNumber}`;
-                setTimeout(() => {
-                    document.body.removeChild(iframe);
-                }, 100);
-            } else {
-                window.location.href = `tel:${phoneNumber}`;
-            }
+            
+            const link = document.createElement('a');
+            link.href = `tel:${phoneNumber}`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         }
 
         // 处理社区医生电话
         function handleDoctorCall() {
             speak('呼叫社区医生');
             const phoneNumber = phoneNumbers.doctor;
-            if (navigator.userAgent.match(/iPhone|iPad|iPod/i)) {
-                const iframe = document.createElement('iframe');
-                iframe.style.display = 'none';
-                document.body.appendChild(iframe);
-                iframe.contentWindow.location.href = `tel://${phoneNumber}`;
-                setTimeout(() => {
-                    document.body.removeChild(iframe);
-                }, 100);
-            } else {
-                window.location.href = `tel:${phoneNumber}`;
-            }
+            
+            const link = document.createElement('a');
+            link.href = `tel:${phoneNumber}`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         }
 
         // 发送消息给医生
@@ -532,10 +609,9 @@
         document.addEventListener('DOMContentLoaded', () => {
             initCallSections();
             updateMedicalDisplay();
-            // 请求通知权限
-            if ('Notification' in window) {
-                Notification.requestPermission();
-            }
+            initSpeechRecognition();
+            startListening();
+            speak('您好，我是您的智能助手，您可以通过语音命令来使用各项功能');
         });
     </script>
 </body>
