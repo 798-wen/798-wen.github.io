@@ -207,10 +207,7 @@
             top: 20px;
             left: 20px;
             font-size: 18px;
-            background: rgba(255, 255, 255, 0.9);
-            padding: 10px 20px;
-            border-radius: 15px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            color: #333;
             z-index: 1000;
             display: flex;
             flex-direction: column;
@@ -380,85 +377,100 @@
 
         // 初始化语音识别
         function initSpeechRecognition() {
-            if ('webkitSpeechRecognition' in window) {
-                recognition = new webkitSpeechRecognition();
-                recognition.continuous = true;
-                recognition.interimResults = true;
-                recognition.lang = 'zh-CN';
-
-                recognition.onresult = function(event) {
-                    const result = event.results[event.results.length - 1];
-                    const text = result[0].transcript.trim();
-                    console.log('识别到的语音:', text);
-                    
-                    if (voiceInputBtn && voiceInputBtn.classList.contains('recording')) {
-                        // 语音输入模式
-                        const chatInput = document.getElementById('chat-input');
-                        chatInput.value = text;
-                        // 实时显示识别的文字
-                        const tempDiv = document.createElement('div');
-                        tempDiv.className = 'message user-message';
-                        tempDiv.textContent = text;
-                        document.getElementById('chat-messages').appendChild(tempDiv);
-                    } else {
-                        // 命令模式
-                        handleVoiceCommand(text);
-                    }
-                };
-
-                recognition.onerror = function(event) {
-                    console.error('语音识别错误:', event.error);
-                    stopListening();
-                };
-
-                recognition.onend = function() {
-                    if (isListening) {
-                        try {
-                            recognition.start();
-                        } catch (error) {
-                            console.error('重新启动语音识别失败:', error);
-                        }
-                    }
-                };
-
-                // 添加错误恢复机制
-                recognition.onnomatch = function() {
-                    console.log('没有识别到语音，重新开始识别');
-                    if (isListening) {
-                        try {
-                            recognition.start();
-                        } catch (error) {
-                            console.error('重新启动语音识别失败:', error);
-                        }
-                    }
-                };
-            } else {
+            // 检查浏览器是否支持语音识别
+            if (!('webkitSpeechRecognition' in window)) {
                 console.error('浏览器不支持语音识别');
+                return;
             }
-        }
 
-        // 切换语音输入模式
-        function toggleVoiceInput() {
-            voiceInputBtn = document.getElementById('voice-input-btn');
-            if (!voiceInputBtn.classList.contains('recording')) {
-                // 开始录音
-                voiceInputBtn.classList.add('recording');
-                voiceInputBtn.textContent = '松开结束';
-                startListening();
-                speak('开始录音');
-            } else {
-                // 结束录音
-                voiceInputBtn.classList.remove('recording');
-                voiceInputBtn.textContent = '按住说话';
-                stopListening();
-                speak('结束录音');
-                // 清除临时显示的消息
-                const messages = document.getElementById('chat-messages');
-                const lastMessage = messages.lastElementChild;
-                if (lastMessage && lastMessage.classList.contains('user-message')) {
-                    messages.removeChild(lastMessage);
+            // 创建语音识别实例
+            recognition = new webkitSpeechRecognition();
+            
+            // 配置语音识别参数
+            recognition.continuous = true;
+            recognition.interimResults = true;
+            recognition.lang = 'zh-CN';
+            recognition.maxAlternatives = 1;
+
+            // 语音识别结果处理
+            recognition.onresult = function(event) {
+                const result = event.results[event.results.length - 1];
+                const text = result[0].transcript.trim();
+                console.log('识别到的语音:', text);
+                
+                if (voiceInputBtn && voiceInputBtn.classList.contains('recording')) {
+                    // 语音输入模式
+                    const chatInput = document.getElementById('chat-input');
+                    chatInput.value = text;
+                    // 实时显示识别的文字
+                    const tempDiv = document.createElement('div');
+                    tempDiv.className = 'message user-message';
+                    tempDiv.textContent = text;
+                    document.getElementById('chat-messages').appendChild(tempDiv);
+                } else {
+                    // 命令模式
+                    handleVoiceCommand(text);
                 }
-            }
+            };
+
+            // 错误处理
+            recognition.onerror = function(event) {
+                console.error('语音识别错误:', event.error);
+                switch(event.error) {
+                    case 'no-speech':
+                        speak('没有检测到语音，请重试');
+                        break;
+                    case 'aborted':
+                        speak('语音识别被中断');
+                        break;
+                    case 'audio-capture':
+                        speak('无法访问麦克风，请检查权限设置');
+                        break;
+                    case 'network':
+                        speak('网络连接错误，请检查网络设置');
+                        break;
+                    case 'not-allowed':
+                        speak('请允许使用麦克风');
+                        break;
+                    case 'service-not-available':
+                        speak('语音识别服务暂时不可用，请稍后重试');
+                        break;
+                    default:
+                        speak('语音识别出现错误，请重试');
+                }
+                stopListening();
+            };
+
+            // 语音识别结束处理
+            recognition.onend = function() {
+                if (isListening) {
+                    try {
+                        recognition.start();
+                    } catch (error) {
+                        console.error('重新启动语音识别失败:', error);
+                        speak('语音识别启动失败，请重试');
+                    }
+                }
+            };
+
+            // 开始识别处理
+            recognition.onstart = function() {
+                console.log('开始语音识别');
+                document.getElementById('voice-status').style.display = 'block';
+            };
+
+            // 没有识别到语音的处理
+            recognition.onnomatch = function() {
+                console.log('没有识别到语音，重新开始识别');
+                if (isListening) {
+                    try {
+                        recognition.start();
+                    } catch (error) {
+                        console.error('重新启动语音识别失败:', error);
+                        speak('语音识别启动失败，请重试');
+                    }
+                }
+            };
         }
 
         // 开始语音识别
@@ -467,7 +479,7 @@
                 try {
                     recognition.start();
                     isListening = true;
-                    document.getElementById('voice-status').style.display = 'block';
+                    speak('开始录音');
                 } catch (error) {
                     console.error('启动语音识别失败:', error);
                     speak('语音识别启动失败，请重试');
@@ -481,6 +493,29 @@
                 recognition.stop();
                 isListening = false;
                 document.getElementById('voice-status').style.display = 'none';
+                speak('结束录音');
+            }
+        }
+
+        // 切换语音输入模式
+        function toggleVoiceInput() {
+            voiceInputBtn = document.getElementById('voice-input-btn');
+            if (!voiceInputBtn.classList.contains('recording')) {
+                // 开始录音
+                voiceInputBtn.classList.add('recording');
+                voiceInputBtn.textContent = '松开结束';
+                startListening();
+            } else {
+                // 结束录音
+                voiceInputBtn.classList.remove('recording');
+                voiceInputBtn.textContent = '按住说话';
+                stopListening();
+                // 清除临时显示的消息
+                const messages = document.getElementById('chat-messages');
+                const lastMessage = messages.lastElementChild;
+                if (lastMessage && lastMessage.classList.contains('user-message')) {
+                    messages.removeChild(lastMessage);
+                }
             }
         }
 
