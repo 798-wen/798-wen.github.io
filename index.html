@@ -161,11 +161,10 @@
             display: flex;
             flex-direction: column;
             gap: 5px;
-            background: transparent;
-            padding: 0;
-            margin: 0;
-            border: none;
-            box-shadow: none;
+            background: rgba(255, 255, 255, 0.8);
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
         .weather-row {
@@ -175,6 +174,9 @@
             background: transparent;
             padding: 0;
             margin: 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .weather-icon {
@@ -340,21 +342,6 @@
         // 初始化聊天记录
         let chatHistory = JSON.parse(localStorage.getItem('chatHistory')) || [];
 
-        // 修改时间显示函数
-        function updateDateTime() {
-            const now = new Date();
-            const weekdays = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
-            
-            const dateStr = `${now.getMonth() + 1}月${now.getDate()}日 ${weekdays[now.getDay()]}`;
-            const timeStr = now.toLocaleTimeString('zh-CN', { 
-                hour: '2-digit', 
-                minute: '2-digit',
-                hour12: false
-            });
-            
-            document.getElementById('date-time').textContent = `${dateStr} ${timeStr}`;
-        }
-
         // 修改语音提示函数，增加兼容性
         function speak(text) {
             if ('speechSynthesis' in window) {
@@ -392,6 +379,24 @@
                         window.speechSynthesis.speak(utterance);
                     }
                 });
+            }
+        }
+
+        // 修改时间显示函数
+        function updateDateTime() {
+            const now = new Date();
+            const weekdays = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+            
+            const dateStr = `${now.getMonth() + 1}月${now.getDate()}日 ${weekdays[now.getDay()]}`;
+            const timeStr = now.toLocaleTimeString('zh-CN', { 
+                hour: '2-digit', 
+                minute: '2-digit',
+                hour12: false
+            });
+            
+            const dateTimeElement = document.getElementById('date-time');
+            if (dateTimeElement) {
+                dateTimeElement.textContent = `${dateStr} ${timeStr}`;
             }
         }
 
@@ -679,21 +684,26 @@
                 const data = await response.json();
                 if (data.status === '1' && data.lives && data.lives[0]) {
                     const weather = data.lives[0];
-                    document.getElementById('weather').textContent = `${weather.temperature}°C ${weather.weather}`;
+                    const weatherElement = document.getElementById('weather');
+                    if (weatherElement) {
+                        weatherElement.textContent = `${weather.temperature}°C ${weather.weather}`;
+                    }
                     
                     // 根据天气设置图标
                     const weatherIcon = document.getElementById('weather-icon');
-                    const weatherText = weather.weather.toLowerCase();
-                    if (weatherText.includes('晴')) {
-                        weatherIcon.src = 'https://api.iconify.design/emojione:sun.svg';
-                    } else if (weatherText.includes('多云')) {
-                        weatherIcon.src = 'https://api.iconify.design/emojione:partly-sunny.svg';
-                    } else if (weatherText.includes('雨')) {
-                        weatherIcon.src = 'https://api.iconify.design/emojione:umbrella-with-rain-drops.svg';
-                    } else if (weatherText.includes('雪')) {
-                        weatherIcon.src = 'https://api.iconify.design/emojione:snowflake.svg';
-                    } else {
-                        weatherIcon.src = 'https://api.iconify.design/emojione:cloud.svg';
+                    if (weatherIcon) {
+                        const weatherText = weather.weather.toLowerCase();
+                        if (weatherText.includes('晴')) {
+                            weatherIcon.src = 'https://api.iconify.design/emojione:sun.svg';
+                        } else if (weatherText.includes('多云')) {
+                            weatherIcon.src = 'https://api.iconify.design/emojione:partly-sunny.svg';
+                        } else if (weatherText.includes('雨')) {
+                            weatherIcon.src = 'https://api.iconify.design/emojione:umbrella-with-rain-drops.svg';
+                        } else if (weatherText.includes('雪')) {
+                            weatherIcon.src = 'https://api.iconify.design/emojione:snowflake.svg';
+                        } else {
+                            weatherIcon.src = 'https://api.iconify.design/emojione:cloud.svg';
+                        }
                     }
                 }
             } catch (error) {
@@ -703,9 +713,24 @@
 
         // 修改初始化函数
         document.addEventListener('DOMContentLoaded', () => {
-            // 确保语音合成器已加载
-            if (window.speechSynthesis.getVoices().length === 0) {
-                window.speechSynthesis.addEventListener('voiceschanged', () => {
+            // 初始化语音合成器
+            function initSpeechSynthesis() {
+                if (window.speechSynthesis.getVoices().length === 0) {
+                    window.speechSynthesis.addEventListener('voiceschanged', () => {
+                        updateDateTime();
+                        getWeather();
+                        setInterval(updateDateTime, 1000);
+                        setInterval(getWeather, 1800000);
+                        
+                        initCallSections();
+                        updateMedicalDisplay();
+                        
+                        // 使用异步方式播放欢迎语
+                        setTimeout(() => {
+                            speak('您好，我是您的智能助手，请点击按钮使用各项功能');
+                        }, 1000);
+                    });
+                } else {
                     updateDateTime();
                     getWeather();
                     setInterval(updateDateTime, 1000);
@@ -718,20 +743,14 @@
                     setTimeout(() => {
                         speak('您好，我是您的智能助手，请点击按钮使用各项功能');
                     }, 1000);
-                });
+                }
+            }
+
+            // 确保页面完全加载后再初始化
+            if (document.readyState === 'complete') {
+                initSpeechSynthesis();
             } else {
-                updateDateTime();
-                getWeather();
-                setInterval(updateDateTime, 1000);
-                setInterval(getWeather, 1800000);
-                
-                initCallSections();
-                updateMedicalDisplay();
-                
-                // 使用异步方式播放欢迎语
-                setTimeout(() => {
-                    speak('您好，我是您的智能助手，请点击按钮使用各项功能');
-                }, 1000);
+                window.addEventListener('load', initSpeechSynthesis);
             }
         });
 
