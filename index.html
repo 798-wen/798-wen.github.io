@@ -343,62 +343,22 @@
 
         // 处理紧急求救
         function handleEmergency() {
-            if (navigator.permissions && navigator.permissions.query) {
-                navigator.permissions.query({ name: 'notifications' }).then(function(permissionStatus) {
-                    if (permissionStatus.state === 'granted') {
-                        window.location.href = 'tel:120';
-                    } else {
-                        alert('请在浏览器设置中允许网站发起通话');
-                    }
-                });
-            } else {
-                window.location.href = 'tel:120';
-            }
+            window.location.href = 'tel:120';
         }
 
         // 处理呼叫亲属
         function handleFamilyCall() {
-            if (navigator.permissions && navigator.permissions.query) {
-                navigator.permissions.query({ name: 'notifications' }).then(function(permissionStatus) {
-                    if (permissionStatus.state === 'granted') {
-                        window.location.href = `tel:${phoneNumbers.family}`;
-                    } else {
-                        alert('请在浏览器设置中允许网站发起通话');
-                    }
-                });
-            } else {
-                window.location.href = `tel:${phoneNumbers.family}`;
-            }
+            window.location.href = `tel:${phoneNumbers.family}`;
         }
 
         // 处理物业联系
         function handlePropertyCall() {
-            if (navigator.permissions && navigator.permissions.query) {
-                navigator.permissions.query({ name: 'notifications' }).then(function(permissionStatus) {
-                    if (permissionStatus.state === 'granted') {
-                        window.location.href = `tel:${phoneNumbers.property}`;
-                    } else {
-                        alert('请在浏览器设置中允许网站发起通话');
-                    }
-                });
-            } else {
-                window.location.href = `tel:${phoneNumbers.property}`;
-            }
+            window.location.href = `tel:${phoneNumbers.property}`;
         }
 
         // 处理社区医生电话
         function handleDoctorCall() {
-            if (navigator.permissions && navigator.permissions.query) {
-                navigator.permissions.query({ name: 'notifications' }).then(function(permissionStatus) {
-                    if (permissionStatus.state === 'granted') {
-                        window.location.href = `tel:${phoneNumbers.doctor}`;
-                    } else {
-                        alert('请在浏览器设置中允许网站发起通话');
-                    }
-                });
-            } else {
-                window.location.href = `tel:${phoneNumbers.doctor}`;
-            }
+            window.location.href = `tel:${phoneNumbers.doctor}`;
         }
 
         // 发送消息给医生
@@ -448,7 +408,7 @@
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': '76e27114-ba0d-4348-a75f-5af0099d12ca' // 替换为您的豆包AI API密钥
+                        'Authorization': 'Bearer 76e27114-ba0d-4348-a75f-5af0099d12ca'
                     },
                     body: JSON.stringify({
                         model: "doubao-text-v1",
@@ -468,12 +428,17 @@
                 });
 
                 if (!response.ok) {
-                    throw new Error('API请求失败');
+                    const errorData = await response.json();
+                    throw new Error(errorData.error?.message || 'API请求失败');
                 }
 
                 const data = await response.json();
-                const aiResponse = data.choices[0].message.content;
-                addMessage(aiResponse, 'ai');
+                if (data.choices && data.choices[0] && data.choices[0].message) {
+                    const aiResponse = data.choices[0].message.content;
+                    addMessage(aiResponse, 'ai');
+                } else {
+                    throw new Error('API响应格式错误');
+                }
             } catch (error) {
                 console.error('AI响应错误:', error);
                 addMessage('抱歉，我现在无法回答您的问题。请稍后再试。', 'ai');
