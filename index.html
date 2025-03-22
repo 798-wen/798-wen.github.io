@@ -153,28 +153,28 @@
 
         .weather-info {
             text-align: left;
-            padding: 15px;
-            margin-bottom: 20px;
+            padding: 8px;
+            margin-bottom: 10px;
         }
 
         #date-time {
-            font-size: 18px;
+            font-size: 14px;
             color: #333;
             display: block;
-            margin-bottom: 5px;
+            margin-bottom: 2px;
         }
 
         #weather {
-            font-size: 18px;
+            font-size: 14px;
             color: #666;
             display: flex;
             align-items: center;
-            gap: 5px;
+            gap: 3px;
         }
 
         .weather-icon {
-            width: 24px;
-            height: 24px;
+            width: 16px;
+            height: 16px;
         }
 
         .send-btn {
@@ -336,63 +336,98 @@
         let chatHistory = JSON.parse(localStorage.getItem('chatHistory')) || [];
 
         // 初始化语音合成
+        let audioContext = null;
         let audioQueue = [];
         let isPlaying = false;
 
-        // 语音播报函数
-        function speak(text) {
-            if (!text) return;
-            
-            // 创建音频元素
-            const audio = new Audio();
-            
-            // 使用百度TTS API
-            const encodedText = encodeURIComponent(text);
-            audio.src = `https://fanyi.baidu.com/gettts?lan=zh&text=${encodedText}&spd=5&source=web`;
-            
-            // 将音频添加到队列
-            audioQueue.push(audio);
-            
-            // 如果当前没有在播放，开始播放
-            if (!isPlaying) {
-                playNext();
+        // 初始化音频上下文
+        function initAudioContext() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
             }
         }
 
-        // 播放队列中的下一个音频
-        function playNext() {
-            if (audioQueue.length === 0) {
-                isPlaying = false;
-                return;
-            }
+        // 语音播报函数
+        async function speak(text) {
+            if (!text) return;
             
-            isPlaying = true;
-            const audio = audioQueue.shift();
-            
-            audio.onended = () => {
-                setTimeout(playNext, 100);
-            };
-            
-            audio.onerror = () => {
-                console.error('音频播放失败');
-                setTimeout(playNext, 100);
-            };
-            
-            // 尝试播放音频
-            audio.play().catch(error => {
-                console.error('播放失败:', error);
-                // 如果播放失败，尝试使用系统TTS
+            try {
+                // 尝试使用系统TTS
                 if ('speechSynthesis' in window) {
-                    const utterance = new SpeechSynthesisUtterance(decodeURIComponent(audio.src.split('text=')[1].split('&')[0]));
+                    const utterance = new SpeechSynthesisUtterance(text);
                     utterance.lang = 'zh-CN';
                     utterance.rate = 0.9;
                     utterance.pitch = 1.0;
                     utterance.volume = 1.0;
+
+                    // 获取中文声音
+                    const voices = window.speechSynthesis.getVoices();
+                    const chineseVoice = voices.find(voice => 
+                        voice.lang.includes('zh') || 
+                        voice.lang.includes('cmn') || 
+                        voice.name.includes('Chinese')
+                    );
                     
+                    if (chineseVoice) {
+                        utterance.voice = chineseVoice;
+                    }
+
+                    // 停止之前的语音
+                    window.speechSynthesis.cancel();
+                    
+                    // 播放新语音
                     window.speechSynthesis.speak(utterance);
+                    
+                    // 如果系统TTS失败，使用备用方案
+                    utterance.onerror = () => {
+                        useBackupTTS(text);
+                    };
+                } else {
+                    useBackupTTS(text);
                 }
-                setTimeout(playNext, 100);
-            });
+            } catch (error) {
+                console.error('语音播报错误:', error);
+                useBackupTTS(text);
+            }
+        }
+
+        // 备用TTS方案
+        async function useBackupTTS(text) {
+            try {
+                // 初始化音频上下文
+                initAudioContext();
+                
+                // 使用百度TTS API
+                const encodedText = encodeURIComponent(text);
+                const audio = new Audio();
+                audio.src = `https://fanyi.baidu.com/gettts?lan=zh&text=${encodedText}&spd=5&source=web`;
+                
+                // 确保音频已加载
+                await new Promise((resolve, reject) => {
+                    audio.oncanplaythrough = resolve;
+                    audio.onerror = reject;
+                    audio.load();
+                });
+
+                // 播放音频
+                await audio.play();
+                
+                // 等待播放完成
+                await new Promise(resolve => {
+                    audio.onended = resolve;
+                });
+            } catch (error) {
+                console.error('备用TTS失败:', error);
+                
+                // 如果还是失败，尝试使用第三个方案
+                try {
+                    const audio = new Audio();
+                    audio.src = `https://tts.baidu.com/text2audio?lan=zh&ie=UTF-8&spd=5&text=${encodeURIComponent(text)}`;
+                    await audio.play();
+                } catch (finalError) {
+                    console.error('所有TTS方案都失败:', finalError);
+                }
+            }
         }
 
         // 修改时间显示函数
@@ -731,6 +766,16 @@
             getWeather();
             setInterval(updateDateTime, 1000);
             setInterval(getWeather, 1800000);
+            
+            // 初始化音频上下文
+            initAudioContext();
+            
+            // 添加用户交互事件来激活音频
+            document.body.addEventListener('touchstart', () => {
+                if (audioContext && audioContext.state === 'suspended') {
+                    audioContext.resume();
+                }
+            }, { once: true });
             
             // 延迟播放欢迎语
             setTimeout(() => {
