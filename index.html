@@ -181,6 +181,24 @@
             width: 24px;
             height: 24px;
         }
+
+        .send-btn {
+            background: var(--secondary-color);
+            color: white;
+            border: none;
+            padding: 20px 40px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 10px;
+            font-size: 36px;
+            width: 100%;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
+        }
+
+        .send-btn:hover {
+            transform: scale(1.02);
+        }
     </style>
 </head>
 <body>
@@ -332,6 +350,7 @@
                 utterance.lang = 'zh-CN';
                 utterance.rate = 0.9;
                 utterance.pitch = 1.0;
+                utterance.volume = 1.0;
                 
                 // 添加错误处理
                 utterance.onerror = function(event) {
@@ -348,7 +367,15 @@
                 return new Promise((resolve, reject) => {
                     utterance.onend = resolve;
                     utterance.onerror = reject;
-                    window.speechSynthesis.speak(utterance);
+                    
+                    // 确保语音合成器已准备就绪
+                    if (window.speechSynthesis.getVoices().length === 0) {
+                        window.speechSynthesis.addEventListener('voiceschanged', () => {
+                            window.speechSynthesis.speak(utterance);
+                        });
+                    } else {
+                        window.speechSynthesis.speak(utterance);
+                    }
                 });
             }
         }
@@ -630,18 +657,19 @@
             loadChatHistory();
         }
 
-        // 更新日期时间和天气
+        // 修改时间显示函数
         function updateDateTime() {
             const now = new Date();
-            const dateStr = now.toLocaleDateString('zh-CN', { 
-                month: 'long', 
-                day: 'numeric', 
-                weekday: 'long' 
-            });
+            const weekdays = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+            const months = ['一月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '十一月', '十二月'];
+            
+            const dateStr = `${months[now.getMonth()]}${now.getDate()}日 ${weekdays[now.getDay()]}`;
             const timeStr = now.toLocaleTimeString('zh-CN', { 
                 hour: '2-digit', 
-                minute: '2-digit' 
+                minute: '2-digit',
+                hour12: false
             });
+            
             document.getElementById('date-time').textContent = `${dateStr} ${timeStr}`;
         }
 
@@ -676,16 +704,37 @@
 
         // 修改初始化函数
         document.addEventListener('DOMContentLoaded', () => {
-            updateDateTime();
-            getWeather();
-            setInterval(updateDateTime, 1000); // 每秒更新一次时间
-            setInterval(getWeather, 1800000); // 每30分钟更新一次天气
-            
-            initCallSections();
-            updateMedicalDisplay();
-            
-            // 使用异步方式播放欢迎语
-            speak('您好，我是您的智能助手，请点击按钮使用各项功能');
+            // 确保语音合成器已加载
+            if (window.speechSynthesis.getVoices().length === 0) {
+                window.speechSynthesis.addEventListener('voiceschanged', () => {
+                    updateDateTime();
+                    getWeather();
+                    setInterval(updateDateTime, 1000);
+                    setInterval(getWeather, 1800000);
+                    
+                    initCallSections();
+                    updateMedicalDisplay();
+                    
+                    // 使用异步方式播放欢迎语
+                    speak('您好，我是您的智能助手，请点击按钮使用各项功能');
+                });
+            } else {
+                updateDateTime();
+                getWeather();
+                setInterval(updateDateTime, 1000);
+                setInterval(getWeather, 1800000);
+                
+                initCallSections();
+                updateMedicalDisplay();
+                
+                // 使用异步方式播放欢迎语
+                speak('您好，我是您的智能助手，请点击按钮使用各项功能');
+            }
+        });
+
+        // 修改所有返回按钮的文字
+        document.querySelectorAll('.back-btn').forEach(btn => {
+            btn.textContent = '← 返回';
         });
     </script>
 </body>
