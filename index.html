@@ -190,7 +190,7 @@
             border-radius: 8px;
             cursor: pointer;
             margin-top: 10px;
-            font-size: 36px;
+            font-size: 32px;
             width: 100%;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
             transition: transform 0.2s;
@@ -339,6 +339,21 @@
 
         // 初始化聊天记录
         let chatHistory = JSON.parse(localStorage.getItem('chatHistory')) || [];
+
+        // 修改时间显示函数
+        function updateDateTime() {
+            const now = new Date();
+            const weekdays = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+            
+            const dateStr = `${now.getMonth() + 1}月${now.getDate()}日 ${weekdays[now.getDay()]}`;
+            const timeStr = now.toLocaleTimeString('zh-CN', { 
+                hour: '2-digit', 
+                minute: '2-digit',
+                hour12: false
+            });
+            
+            document.getElementById('date-time').textContent = `${dateStr} ${timeStr}`;
+        }
 
         // 修改语音提示函数，增加兼容性
         function speak(text) {
@@ -657,22 +672,6 @@
             loadChatHistory();
         }
 
-        // 修改时间显示函数
-        function updateDateTime() {
-            const now = new Date();
-            const weekdays = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
-            const months = ['一月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '十一月', '十二月'];
-            
-            const dateStr = `${months[now.getMonth()]}${now.getDate()}日 ${weekdays[now.getDay()]}`;
-            const timeStr = now.toLocaleTimeString('zh-CN', { 
-                hour: '2-digit', 
-                minute: '2-digit',
-                hour12: false
-            });
-            
-            document.getElementById('date-time').textContent = `${dateStr} ${timeStr}`;
-        }
-
         // 获取天气信息
         async function getWeather() {
             try {
@@ -716,7 +715,9 @@
                     updateMedicalDisplay();
                     
                     // 使用异步方式播放欢迎语
-                    speak('您好，我是您的智能助手，请点击按钮使用各项功能');
+                    setTimeout(() => {
+                        speak('您好，我是您的智能助手，请点击按钮使用各项功能');
+                    }, 1000);
                 });
             } else {
                 updateDateTime();
@@ -728,7 +729,9 @@
                 updateMedicalDisplay();
                 
                 // 使用异步方式播放欢迎语
-                speak('您好，我是您的智能助手，请点击按钮使用各项功能');
+                setTimeout(() => {
+                    speak('您好，我是您的智能助手，请点击按钮使用各项功能');
+                }, 1000);
             }
         });
 
