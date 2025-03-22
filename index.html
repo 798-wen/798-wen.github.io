@@ -428,11 +428,48 @@
             }
         }
 
+        // 处理语音命令
+        function handleVoiceCommand(text) {
+            console.log('处理语音命令:', text);
+            
+            // 紧急求救相关命令
+            if (text.includes('紧急求救') || text.includes('救命') || text.includes('救救我')) {
+                handleEmergency();
+            }
+            // 呼叫亲属相关命令
+            else if (text.includes('打电话给儿子') || text.includes('打电话给女儿') || 
+                     text.includes('呼叫亲属') || text.includes('打电话给家人') ||
+                     text.includes('打电话给儿子') || text.includes('打电话给女儿')) {
+                handleFamilyCall();
+            }
+            // 呼叫医生相关命令
+            else if (text.includes('打电话给医生') || text.includes('呼叫医生') ||
+                     text.includes('找医生') || text.includes('联系医生')) {
+                handleDoctorCall();
+            }
+            // 呼叫物业相关命令
+            else if (text.includes('打电话给物业') || text.includes('呼叫物业') ||
+                     text.includes('找物业') || text.includes('联系物业')) {
+                handlePropertyCall();
+            }
+            // 如果是AI聊天界面，将识别的文字填入输入框
+            else if (document.getElementById('ai-chat').classList.contains('hidden') === false) {
+                const chatInput = document.getElementById('chat-input');
+                chatInput.value = text;
+                // 显示识别的文字
+                const tempDiv = document.createElement('div');
+                tempDiv.className = 'message user-message';
+                tempDiv.textContent = text;
+                document.getElementById('chat-messages').appendChild(tempDiv);
+            }
+        }
+
         // 修改语音识别初始化函数
         function initSpeechRecognition() {
             // 检查浏览器是否支持录音
             if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
                 console.error('浏览器不支持录音功能');
+                speak('您的浏览器不支持录音功能，请使用其他浏览器');
                 return;
             }
 
@@ -444,8 +481,17 @@
             // 开始录音
             async function startRecording() {
                 try {
-                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                    mediaRecorder = new MediaRecorder(stream);
+                    const stream = await navigator.mediaDevices.getUserMedia({ 
+                        audio: {
+                            channelCount: 1,
+                            sampleRate: 16000,
+                            sampleSize: 16
+                        } 
+                    });
+                    
+                    mediaRecorder = new MediaRecorder(stream, {
+                        mimeType: 'audio/webm;codecs=opus'
+                    });
                     audioChunks = [];
 
                     mediaRecorder.ondataavailable = (event) => {
@@ -453,10 +499,19 @@
                     };
 
                     mediaRecorder.onstop = async () => {
-                        const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
-                        const text = await baiduSpeechRecognition(audioBlob);
-                        if (text) {
-                            handleVoiceCommand(text);
+                        try {
+                            const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                            // 转换为WAV格式
+                            const wavBlob = await convertToWav(audioBlob);
+                            const text = await baiduSpeechRecognition(wavBlob);
+                            if (text) {
+                                handleVoiceCommand(text);
+                            } else {
+                                speak('抱歉，我没有听清楚，请重试');
+                            }
+                        } catch (error) {
+                            console.error('语音识别处理失败:', error);
+                            speak('语音识别失败，请重试');
                         }
                     };
 
@@ -484,6 +539,68 @@
             voiceInputBtn.addEventListener('mouseup', stopRecording);
             voiceInputBtn.addEventListener('touchstart', startRecording);
             voiceInputBtn.addEventListener('touchend', stopRecording);
+        }
+
+        // 将音频转换为WAV格式
+        async function convertToWav(audioBlob) {
+            const arrayBuffer = await audioBlob.arrayBuffer();
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+            
+            const wavBuffer = audioBufferToWav(audioBuffer);
+            return new Blob([wavBuffer], { type: 'audio/wav' });
+        }
+
+        // 将AudioBuffer转换为WAV格式
+        function audioBufferToWav(buffer) {
+            const numChannels = buffer.numberOfChannels;
+            const sampleRate = buffer.sampleRate;
+            const format = 1;
+            const bitDepth = 16;
+
+            const bytesPerSample = bitDepth / 8;
+            const blockAlign = numChannels * bytesPerSample;
+
+            const wav = new ArrayBuffer(44 + buffer.length * bytesPerSample);
+            const view = new DataView(wav);
+
+            // WAV文件头
+            writeString(view, 0, 'RIFF');
+            view.setUint32(4, 36 + buffer.length * bytesPerSample, true);
+            writeString(view, 8, 'WAVE');
+            writeString(view, 12, 'fmt ');
+            view.setUint32(16, 16, true);
+            view.setUint16(20, format, true);
+            view.setUint16(22, numChannels, true);
+            view.setUint32(24, sampleRate, true);
+            view.setUint32(28, sampleRate * blockAlign, true);
+            view.setUint16(32, blockAlign, true);
+            view.setUint16(34, bitDepth, true);
+            writeString(view, 36, 'data');
+            view.setUint32(40, buffer.length * bytesPerSample, true);
+
+            // 写入音频数据
+            const data = new Float32Array(buffer.length);
+            const channelData = buffer.getChannelData(0);
+            for (let i = 0; i < buffer.length; i++) {
+                data[i] = channelData[i];
+            }
+
+            let offset = 44;
+            for (let i = 0; i < data.length; i++) {
+                const sample = Math.max(-1, Math.min(1, data[i]));
+                view.setInt16(offset, sample * 0x7FFF, true);
+                offset += 2;
+            }
+
+            return wav;
+        }
+
+        // 辅助函数：写入字符串到DataView
+        function writeString(view, offset, string) {
+            for (let i = 0; i < string.length; i++) {
+                view.setUint8(offset + i, string.charCodeAt(i));
+            }
         }
 
         // 修改语音输入切换函数
