@@ -336,98 +336,40 @@
         let chatHistory = JSON.parse(localStorage.getItem('chatHistory')) || [];
 
         // 初始化语音合成
-        let audioContext = null;
-        let audioQueue = [];
-        let isPlaying = false;
-
-        // 初始化音频上下文
-        function initAudioContext() {
-            if (!audioContext) {
-                audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            }
-        }
+        let synth = window.speechSynthesis;
+        let voices = [];
 
         // 语音播报函数
-        async function speak(text) {
+        function speak(text) {
             if (!text) return;
             
-            try {
-                // 尝试使用系统TTS
-                if ('speechSynthesis' in window) {
-                    const utterance = new SpeechSynthesisUtterance(text);
-                    utterance.lang = 'zh-CN';
-                    utterance.rate = 0.9;
-                    utterance.pitch = 1.0;
-                    utterance.volume = 1.0;
+            // 停止当前正在播放的语音
+            synth.cancel();
 
-                    // 获取中文声音
-                    const voices = window.speechSynthesis.getVoices();
-                    const chineseVoice = voices.find(voice => 
-                        voice.lang.includes('zh') || 
-                        voice.lang.includes('cmn') || 
-                        voice.name.includes('Chinese')
-                    );
-                    
-                    if (chineseVoice) {
-                        utterance.voice = chineseVoice;
-                    }
+            // 创建新的语音实例
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'zh-CN';
+            utterance.rate = 1.0;
+            utterance.pitch = 1.0;
+            utterance.volume = 1.0;
 
-                    // 停止之前的语音
-                    window.speechSynthesis.cancel();
-                    
-                    // 播放新语音
-                    window.speechSynthesis.speak(utterance);
-                    
-                    // 如果系统TTS失败，使用备用方案
-                    utterance.onerror = () => {
-                        useBackupTTS(text);
-                    };
-                } else {
-                    useBackupTTS(text);
-                }
-            } catch (error) {
-                console.error('语音播报错误:', error);
-                useBackupTTS(text);
+            // 如果有可用的中文语音，使用中文语音
+            if (voices.length === 0) {
+                voices = synth.getVoices();
             }
-        }
-
-        // 备用TTS方案
-        async function useBackupTTS(text) {
-            try {
-                // 初始化音频上下文
-                initAudioContext();
-                
-                // 使用百度TTS API
-                const encodedText = encodeURIComponent(text);
-                const audio = new Audio();
-                audio.src = `https://fanyi.baidu.com/gettts?lan=zh&text=${encodedText}&spd=5&source=web`;
-                
-                // 确保音频已加载
-                await new Promise((resolve, reject) => {
-                    audio.oncanplaythrough = resolve;
-                    audio.onerror = reject;
-                    audio.load();
-                });
-
-                // 播放音频
-                await audio.play();
-                
-                // 等待播放完成
-                await new Promise(resolve => {
-                    audio.onended = resolve;
-                });
-            } catch (error) {
-                console.error('备用TTS失败:', error);
-                
-                // 如果还是失败，尝试使用第三个方案
-                try {
-                    const audio = new Audio();
-                    audio.src = `https://tts.baidu.com/text2audio?lan=zh&ie=UTF-8&spd=5&text=${encodeURIComponent(text)}`;
-                    await audio.play();
-                } catch (finalError) {
-                    console.error('所有TTS方案都失败:', finalError);
-                }
+            
+            const chineseVoice = voices.find(voice => 
+                voice.lang.includes('zh') || 
+                voice.lang.includes('cmn') || 
+                voice.name.includes('Chinese')
+            );
+            
+            if (chineseVoice) {
+                utterance.voice = chineseVoice;
             }
+
+            // 播放语音
+            synth.speak(utterance);
         }
 
         // 修改时间显示函数
@@ -528,7 +470,7 @@
 
         // 返回主菜单
         function backToMenu() {
-            speak('返回');
+            speak('返回主菜单');
             showSection('main-menu');
         }
 
@@ -612,38 +554,14 @@
             speak('紧急求救');
             const phoneNumber = '120';
             
-            // 保持屏幕常亮
-            if ('wakeLock' in navigator) {
-                navigator.wakeLock.request('screen')
-                    .then(lock => {
-                        // 保持屏幕常亮直到页面关闭
-                        window.addEventListener('beforeunload', () => {
-                            lock.release();
-                        });
-                    })
-                    .catch(err => console.error('保持屏幕常亮失败:', err));
-            }
-
-            // 使用a标签方式处理通话
             const link = document.createElement('a');
             link.href = `tel:${phoneNumber}`;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
 
-            // 延迟3秒后显示基础病页面
             setTimeout(() => {
                 showSection('medical');
-                // 确保页面保持常亮
-                if ('wakeLock' in navigator) {
-                    navigator.wakeLock.request('screen')
-                        .then(lock => {
-                            window.addEventListener('beforeunload', () => {
-                                lock.release();
-                            });
-                        })
-                        .catch(err => console.error('保持屏幕常亮失败:', err));
-                }
             }, 3000);
         }
 
@@ -759,29 +677,77 @@
             }
         }
 
-        // 修改初始化函数
+        // 初始化函数
         document.addEventListener('DOMContentLoaded', () => {
+            // 初始化语音
+            if (synth.getVoices().length === 0) {
+                synth.addEventListener('voiceschanged', () => {
+                    voices = synth.getVoices();
+                });
+            } else {
+                voices = synth.getVoices();
+            }
+
             // 初始化页面
             updateDateTime();
             getWeather();
             setInterval(updateDateTime, 1000);
             setInterval(getWeather, 1800000);
-            
-            // 初始化音频上下文
-            initAudioContext();
-            
-            // 添加用户交互事件来激活音频
-            document.body.addEventListener('touchstart', () => {
-                if (audioContext && audioContext.state === 'suspended') {
-                    audioContext.resume();
-                }
-            }, { once: true });
-            
-            // 延迟播放欢迎语
-            setTimeout(() => {
+
+            // 添加用户交互事件来激活语音
+            document.body.addEventListener('click', () => {
                 speak('您好，我是您的智能助手，请点击按钮使用各项功能');
-            }, 1000);
+            }, { once: true });
         });
+
+        // 修改按钮点击事件处理函数
+        function handleEmergency() {
+            speak('紧急求救');
+            const phoneNumber = '120';
+            
+            const link = document.createElement('a');
+            link.href = `tel:${phoneNumber}`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            setTimeout(() => {
+                showSection('medical');
+            }, 3000);
+        }
+
+        function handleFamilyCall() {
+            speak('呼叫亲属');
+            const phoneNumber = phoneNumbers.family;
+            
+            const link = document.createElement('a');
+            link.href = `tel:${phoneNumber}`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function handlePropertyCall() {
+            speak('物业联系');
+            const phoneNumber = phoneNumbers.property;
+            
+            const link = document.createElement('a');
+            link.href = `tel:${phoneNumber}`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function handleDoctorCall() {
+            speak('呼叫社区医生');
+            const phoneNumber = phoneNumbers.doctor;
+            
+            const link = document.createElement('a');
+            link.href = `tel:${phoneNumber}`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
 
         // 修改所有返回按钮的文字
         document.querySelectorAll('.back-btn').forEach(btn => {
