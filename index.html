@@ -264,20 +264,37 @@
         function speak(text) {
             if (!text) return;
             
-            // 在Android上使用新的语音合成方式
-            if (/Android/i.test(navigator.userAgent)) {
-                try {
-                    // 创建音频元素
-                    const audio = new Audio();
-                    const encodedText = encodeURIComponent(text);
-                    audio.src = `https://fanyi.baidu.com/gettts?lan=zh&text=${encodedText}&spd=5&source=web`;
-                    audio.play();
-                    return;
-                } catch (e) {
-                    console.error('Android语音播放失败:', e);
-                }
+            // 尝试使用百度API进行语音合成
+            try {
+                const audio = new Audio();
+                const encodedText = encodeURIComponent(text);
+                audio.src = `https://fanyi.baidu.com/gettts?lan=zh&text=${encodedText}&spd=5&source=web`;
+                
+                audio.oncanplay = () => {
+                    audio.play().catch(e => {
+                        console.error('音频播放失败，尝试使用备用方案:', e);
+                        useFallbackSpeech(text);
+                    });
+                };
+                
+                audio.onerror = () => {
+                    console.error('音频加载失败，尝试使用备用方案');
+                    useFallbackSpeech(text);
+                };
+                
+                return;
+            } catch (e) {
+                console.error('百度API语音合成失败，尝试使用备用方案:', e);
+                useFallbackSpeech(text);
             }
-            
+        }
+
+        function useFallbackSpeech(text) {
+            if (!window.speechSynthesis) {
+                console.error('设备不支持语音合成');
+                return;
+            }
+
             speechQueue.push(text);
             if (!speaking) {
                 processSpeechQueue();
@@ -293,14 +310,12 @@
             speaking = true;
             const text = speechQueue.shift();
 
-            // 创建新的语音合成器实例
             const utterance = new SpeechSynthesisUtterance(text);
             utterance.lang = 'zh-CN';
             utterance.rate = 0.9;
             utterance.pitch = 1.0;
             utterance.volume = 1.0;
 
-            // 强制使用中文语音
             const voices = window.speechSynthesis.getVoices();
             const chineseVoice = voices.find(voice => 
                 voice.lang.includes('zh') || 
@@ -311,22 +326,19 @@
                 utterance.voice = chineseVoice;
             }
 
-            // 处理语音结束事件
             utterance.onend = () => {
                 speaking = false;
                 setTimeout(processSpeechQueue, 100);
             };
 
-            // 处理错误
             utterance.onerror = (event) => {
                 console.error('语音合成错误:', event);
                 speaking = false;
                 setTimeout(processSpeechQueue, 100);
             };
 
-            // 播放语音
             try {
-                window.speechSynthesis.cancel(); // 取消之前的语音
+                window.speechSynthesis.cancel();
                 window.speechSynthesis.speak(utterance);
             } catch (e) {
                 console.error('语音播放失败:', e);
@@ -676,21 +688,17 @@
 
         // 修改初始化函数
         document.addEventListener('DOMContentLoaded', () => {
-            // 初始化语音合成器
-            if ('speechSynthesis' in window) {
-                // 预加载语音
-                window.speechSynthesis.getVoices();
-            }
+            // 预加载音频以激活音频功能
+            const audio = new Audio();
+            audio.src = 'data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4LjIwLjEwMAAAAAAAAAAAAAAA//OEAAAAAAAAAAAAAAAAAAAAAAAASW5mbwAAAA8AAAAEAAABIADAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV6urq6urq6urq6urq6urq6urq6urq6urq6v////////////////////////////////8AAAAATGF2YzU4LjM1AAAAAAAAAAAAAAAAJAAAAAAAAAAAASDs90hvAAAAAAAAAAAAAAAAAAAA//MUZAAAAAGkAAAAAAAAA0gAAAAATEFN//MUZAMAAAGkAAAAAAAAA0gAAAAARTMu//MUZAYAAAGkAAAAAAAAA0gAAAAAOTku//MUZAkAAAGkAAAAAAAAA0gAAAAANVVV';
             
-            // 初始化应用
-            initializeApp();
-            
-            // 添加触摸事件监听器，用于在Android上激活音频
+            // 用户交互时播放音频以激活音频功能
             document.addEventListener('touchstart', () => {
-                const audio = new Audio();
-                audio.src = 'data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4LjIwLjEwMAAAAAAAAAAAAAAA//OEAAAAAAAAAAAAAAAAAAAAAAAASW5mbwAAAA8AAAAEAAABIADAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV6urq6urq6urq6urq6urq6urq6urq6urq6v////////////////////////////////8AAAAATGF2YzU4LjM1AAAAAAAAAAAAAAAAJAAAAAAAAAAAASDs90hvAAAAAAAAAAAAAAAAAAAA//MUZAAAAAGkAAAAAAAAA0gAAAAATEFN//MUZAMAAAGkAAAAAAAAA0gAAAAARTMu//MUZAYAAAGkAAAAAAAAA0gAAAAAOTku//MUZAkAAAGkAAAAAAAAA0gAAAAANVVV';
                 audio.play().catch(() => {});
             }, { once: true });
+
+            // 初始化应用
+            initializeApp();
         });
 
         function initializeApp() {
@@ -701,9 +709,6 @@
             // 设置定时更新
             setInterval(updateDateTime, 1000);
             setInterval(getWeather, 1800000);
-            
-            // 初始化其他功能
-            updateMedicalDisplay();
             
             // 延迟播放欢迎语
             setTimeout(() => {
