@@ -212,12 +212,20 @@
             display: flex;
             flex-direction: column;
             gap: 5px;
+            background: transparent;
+            padding: 0;
+            margin: 0;
+            border: none;
+            box-shadow: none;
         }
 
         .weather-row {
             display: flex;
             align-items: center;
             gap: 10px;
+            background: transparent;
+            padding: 0;
+            margin: 0;
         }
 
         .weather-icon {
@@ -369,179 +377,126 @@
         // 初始化聊天记录
         let chatHistory = JSON.parse(localStorage.getItem('chatHistory')) || [];
 
-        // 语音识别相关变量
-        let recognition = null;
-        let isListening = false;
-        let voiceInputBtn = null;
-        let voiceInputTimeout = null;
+        // 百度语音识别API配置
+        const BAIDU_API_KEY = 'TaQEeusfUGYauc5L5xlVmJbT';
+        const BAIDU_SECRET_KEY = 'wt37PVZLdAykrPp8HhstYIHjSkWnDZKG';
+        let accessToken = null;
 
-        // 初始化语音识别
+        // 获取百度API访问令牌
+        async function getBaiduAccessToken() {
+            try {
+                const response = await fetch(`https://aip.baidubce.com/oauth/2.0/token?grant_type=client_credentials&client_id=${BAIDU_API_KEY}&client_secret=${BAIDU_SECRET_KEY}`);
+                const data = await response.json();
+                accessToken = data.access_token;
+                return accessToken;
+            } catch (error) {
+                console.error('获取百度API访问令牌失败:', error);
+                return null;
+            }
+        }
+
+        // 使用百度语音识别API
+        async function baiduSpeechRecognition(audioBlob) {
+            try {
+                if (!accessToken) {
+                    await getBaiduAccessToken();
+                }
+
+                const formData = new FormData();
+                formData.append('speech', audioBlob, 'audio.wav');
+                formData.append('len', audioBlob.size);
+                formData.append('rate', 16000);
+                formData.append('channel', 1);
+                formData.append('cuid', 'your_app_id');
+                formData.append('ctp', 1);
+                formData.append('lan', 'zh');
+                formData.append('token', accessToken);
+
+                const response = await fetch(`https://vop.baidu.com/server_api?access_token=${accessToken}`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+                if (data.result && data.result[0]) {
+                    return data.result[0];
+                }
+                throw new Error('语音识别失败');
+            } catch (error) {
+                console.error('百度语音识别错误:', error);
+                return null;
+            }
+        }
+
+        // 修改语音识别初始化函数
         function initSpeechRecognition() {
-            // 检查浏览器是否支持语音识别
-            if (!('webkitSpeechRecognition' in window)) {
-                console.error('浏览器不支持语音识别');
+            // 检查浏览器是否支持录音
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                console.error('浏览器不支持录音功能');
                 return;
             }
 
-            // 创建语音识别实例
-            recognition = new webkitSpeechRecognition();
-            
-            // 配置语音识别参数
-            recognition.continuous = true;
-            recognition.interimResults = true;
-            recognition.lang = 'zh-CN';
-            recognition.maxAlternatives = 1;
+            // 创建音频上下文
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            let mediaRecorder = null;
+            let audioChunks = [];
 
-            // 语音识别结果处理
-            recognition.onresult = function(event) {
-                const result = event.results[event.results.length - 1];
-                const text = result[0].transcript.trim();
-                console.log('识别到的语音:', text);
-                
-                if (voiceInputBtn && voiceInputBtn.classList.contains('recording')) {
-                    // 语音输入模式
-                    const chatInput = document.getElementById('chat-input');
-                    chatInput.value = text;
-                    // 实时显示识别的文字
-                    const tempDiv = document.createElement('div');
-                    tempDiv.className = 'message user-message';
-                    tempDiv.textContent = text;
-                    document.getElementById('chat-messages').appendChild(tempDiv);
-                } else {
-                    // 命令模式
-                    handleVoiceCommand(text);
-                }
-            };
-
-            // 错误处理
-            recognition.onerror = function(event) {
-                console.error('语音识别错误:', event.error);
-                switch(event.error) {
-                    case 'no-speech':
-                        speak('没有检测到语音，请重试');
-                        break;
-                    case 'aborted':
-                        speak('语音识别被中断');
-                        break;
-                    case 'audio-capture':
-                        speak('无法访问麦克风，请检查权限设置');
-                        break;
-                    case 'network':
-                        speak('网络连接错误，请检查网络设置');
-                        break;
-                    case 'not-allowed':
-                        speak('请允许使用麦克风');
-                        break;
-                    case 'service-not-available':
-                        speak('语音识别服务暂时不可用，请稍后重试');
-                        break;
-                    default:
-                        speak('语音识别出现错误，请重试');
-                }
-                stopListening();
-            };
-
-            // 语音识别结束处理
-            recognition.onend = function() {
-                if (isListening) {
-                    try {
-                        recognition.start();
-                    } catch (error) {
-                        console.error('重新启动语音识别失败:', error);
-                        speak('语音识别启动失败，请重试');
-                    }
-                }
-            };
-
-            // 开始识别处理
-            recognition.onstart = function() {
-                console.log('开始语音识别');
-                document.getElementById('voice-status').style.display = 'block';
-            };
-
-            // 没有识别到语音的处理
-            recognition.onnomatch = function() {
-                console.log('没有识别到语音，重新开始识别');
-                if (isListening) {
-                    try {
-                        recognition.start();
-                    } catch (error) {
-                        console.error('重新启动语音识别失败:', error);
-                        speak('语音识别启动失败，请重试');
-                    }
-                }
-            };
-        }
-
-        // 开始语音识别
-        function startListening() {
-            if (recognition && !isListening) {
+            // 开始录音
+            async function startRecording() {
                 try {
-                    recognition.start();
-                    isListening = true;
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    mediaRecorder = new MediaRecorder(stream);
+                    audioChunks = [];
+
+                    mediaRecorder.ondataavailable = (event) => {
+                        audioChunks.push(event.data);
+                    };
+
+                    mediaRecorder.onstop = async () => {
+                        const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                        const text = await baiduSpeechRecognition(audioBlob);
+                        if (text) {
+                            handleVoiceCommand(text);
+                        }
+                    };
+
+                    mediaRecorder.start();
+                    document.getElementById('voice-status').style.display = 'block';
                     speak('开始录音');
                 } catch (error) {
-                    console.error('启动语音识别失败:', error);
-                    speak('语音识别启动失败，请重试');
+                    console.error('启动录音失败:', error);
+                    speak('无法访问麦克风，请检查权限设置');
                 }
             }
-        }
 
-        // 停止语音识别
-        function stopListening() {
-            if (recognition && isListening) {
-                recognition.stop();
-                isListening = false;
-                document.getElementById('voice-status').style.display = 'none';
-                speak('结束录音');
+            // 停止录音
+            function stopRecording() {
+                if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                    mediaRecorder.stop();
+                    document.getElementById('voice-status').style.display = 'none';
+                    speak('结束录音');
+                }
             }
+
+            // 更新语音输入按钮事件
+            const voiceInputBtn = document.getElementById('voice-input-btn');
+            voiceInputBtn.addEventListener('mousedown', startRecording);
+            voiceInputBtn.addEventListener('mouseup', stopRecording);
+            voiceInputBtn.addEventListener('touchstart', startRecording);
+            voiceInputBtn.addEventListener('touchend', stopRecording);
         }
 
-        // 切换语音输入模式
+        // 修改语音输入切换函数
         function toggleVoiceInput() {
             voiceInputBtn = document.getElementById('voice-input-btn');
             if (!voiceInputBtn.classList.contains('recording')) {
-                // 开始录音
                 voiceInputBtn.classList.add('recording');
                 voiceInputBtn.textContent = '松开结束';
-                startListening();
+                startRecording();
             } else {
-                // 结束录音
                 voiceInputBtn.classList.remove('recording');
                 voiceInputBtn.textContent = '按住说话';
-                stopListening();
-                // 清除临时显示的消息
-                const messages = document.getElementById('chat-messages');
-                const lastMessage = messages.lastElementChild;
-                if (lastMessage && lastMessage.classList.contains('user-message')) {
-                    messages.removeChild(lastMessage);
-                }
-            }
-        }
-
-        // 处理语音命令
-        function handleVoiceCommand(text) {
-            console.log('处理语音命令:', text);
-            
-            // 紧急求救相关命令
-            if (text.includes('紧急求救') || text.includes('救命') || text.includes('救救我')) {
-                handleEmergency();
-            }
-            // 呼叫亲属相关命令
-            else if (text.includes('打电话给儿子') || text.includes('打电话给女儿') || 
-                     text.includes('呼叫亲属') || text.includes('打电话给家人') ||
-                     text.includes('打电话给儿子') || text.includes('打电话给女儿')) {
-                handleFamilyCall();
-            }
-            // 呼叫医生相关命令
-            else if (text.includes('打电话给医生') || text.includes('呼叫医生') ||
-                     text.includes('找医生') || text.includes('联系医生')) {
-                handleDoctorCall();
-            }
-            // 呼叫物业相关命令
-            else if (text.includes('打电话给物业') || text.includes('呼叫物业') ||
-                     text.includes('找物业') || text.includes('联系物业')) {
-                handlePropertyCall();
+                stopRecording();
             }
         }
 
@@ -899,7 +854,7 @@
             initCallSections();
             updateMedicalDisplay();
             initSpeechRecognition();
-            startListening();
+            startRecording();
             speak('您好，我是您的智能助手，您可以通过语音命令来使用各项功能，也可以按住说话按钮进行语音输入');
         });
     </script>
