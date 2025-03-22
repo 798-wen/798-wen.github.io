@@ -145,6 +145,30 @@
             margin-top: 10px;
         }
 
+        .voice-input-btn {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 10px;
+            font-size: 32px;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        .voice-input-btn.recording {
+            background: #e74c3c;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
         .send-btn {
             background: var(--secondary-color);
             color: white;
@@ -227,6 +251,7 @@
             <h1>🤖 万能问答</h1>
             <div class="chat-container">
                 <div class="chat-messages" id="chat-messages"></div>
+                <button class="voice-input-btn" onclick="toggleVoiceInput()" id="voice-input-btn">按住说话</button>
                 <input type="text" class="chat-input" id="chat-input" placeholder="请输入您的问题...">
                 <button class="send-btn" onclick="sendMessage()">发送</button>
             </div>
@@ -304,6 +329,8 @@
         // 语音识别相关变量
         let recognition = null;
         let isListening = false;
+        let voiceInputBtn = null;
+        let voiceInputTimeout = null;
 
         // 初始化语音识别
         function initSpeechRecognition() {
@@ -316,45 +343,56 @@
                 recognition.onresult = function(event) {
                     const result = event.results[event.results.length - 1];
                     const text = result[0].transcript.trim();
-                    handleVoiceCommand(text);
+                    console.log('识别到的语音:', text);
+                    
+                    if (voiceInputBtn && voiceInputBtn.classList.contains('recording')) {
+                        // 语音输入模式
+                        document.getElementById('chat-input').value = text;
+                    } else {
+                        // 命令模式
+                        handleVoiceCommand(text);
+                    }
                 };
 
                 recognition.onerror = function(event) {
                     console.error('语音识别错误:', event.error);
                     stopListening();
                 };
+
+                recognition.onend = function() {
+                    if (isListening) {
+                        recognition.start();
+                    }
+                };
             }
         }
 
-        // 处理语音命令
-        function handleVoiceCommand(text) {
-            console.log('识别到的语音:', text);
-            
-            // 紧急求救相关命令
-            if (text.includes('紧急求救') || text.includes('救命')) {
-                handleEmergency();
-            }
-            // 呼叫亲属相关命令
-            else if (text.includes('打电话给儿子') || text.includes('打电话给女儿') || 
-                     text.includes('呼叫亲属') || text.includes('打电话给家人')) {
-                handleFamilyCall();
-            }
-            // 呼叫医生相关命令
-            else if (text.includes('打电话给医生') || text.includes('呼叫医生')) {
-                handleDoctorCall();
-            }
-            // 呼叫物业相关命令
-            else if (text.includes('打电话给物业') || text.includes('呼叫物业')) {
-                handlePropertyCall();
+        // 切换语音输入模式
+        function toggleVoiceInput() {
+            voiceInputBtn = document.getElementById('voice-input-btn');
+            if (!voiceInputBtn.classList.contains('recording')) {
+                // 开始录音
+                voiceInputBtn.classList.add('recording');
+                voiceInputBtn.textContent = '松开结束';
+                startListening();
+            } else {
+                // 结束录音
+                voiceInputBtn.classList.remove('recording');
+                voiceInputBtn.textContent = '按住说话';
+                stopListening();
             }
         }
 
         // 开始语音识别
         function startListening() {
             if (recognition && !isListening) {
-                recognition.start();
-                isListening = true;
-                document.getElementById('voice-status').style.display = 'block';
+                try {
+                    recognition.start();
+                    isListening = true;
+                    document.getElementById('voice-status').style.display = 'block';
+                } catch (error) {
+                    console.error('启动语音识别失败:', error);
+                }
             }
         }
 
@@ -364,6 +402,32 @@
                 recognition.stop();
                 isListening = false;
                 document.getElementById('voice-status').style.display = 'none';
+            }
+        }
+
+        // 处理语音命令
+        function handleVoiceCommand(text) {
+            console.log('处理语音命令:', text);
+            
+            // 紧急求救相关命令
+            if (text.includes('紧急求救') || text.includes('救命') || text.includes('救救我')) {
+                handleEmergency();
+            }
+            // 呼叫亲属相关命令
+            else if (text.includes('打电话给儿子') || text.includes('打电话给女儿') || 
+                     text.includes('呼叫亲属') || text.includes('打电话给家人') ||
+                     text.includes('打电话给儿子') || text.includes('打电话给女儿')) {
+                handleFamilyCall();
+            }
+            // 呼叫医生相关命令
+            else if (text.includes('打电话给医生') || text.includes('呼叫医生') ||
+                     text.includes('找医生') || text.includes('联系医生')) {
+                handleDoctorCall();
+            }
+            // 呼叫物业相关命令
+            else if (text.includes('打电话给物业') || text.includes('呼叫物业') ||
+                     text.includes('找物业') || text.includes('联系物业')) {
+                handlePropertyCall();
             }
         }
 
@@ -461,7 +525,13 @@
                         messages: [
                             {
                                 role: "system",
-                                content: "你是一个专业的老年健康助手，请用简单易懂的语言回答问题。回答要简短、清晰，避免使用专业术语，用通俗易懂的比喻来解释。"
+                                content: `你是一个专业的老年健康助手，请用简单易懂的语言回答问题。回答要简短、清晰，避免使用专业术语，用通俗易懂的比喻来解释。
+                                对于健康问题，请给出适合老年人的建议，包括：
+                                1. 立即需要采取的措施
+                                2. 日常注意事项
+                                3. 需要及时就医的情况
+                                4. 预防措施
+                                请用温和、关心的语气回答。`
                             },
                             {
                                 role: "user",
@@ -500,7 +570,14 @@
             
             // 保持屏幕常亮
             if ('wakeLock' in navigator) {
-                navigator.wakeLock.request('screen');
+                navigator.wakeLock.request('screen')
+                    .then(lock => {
+                        // 保持屏幕常亮直到页面关闭
+                        window.addEventListener('beforeunload', () => {
+                            lock.release();
+                        });
+                    })
+                    .catch(err => console.error('保持屏幕常亮失败:', err));
             }
 
             // 使用a标签方式处理通话
@@ -513,6 +590,16 @@
             // 延迟3秒后显示基础病页面
             setTimeout(() => {
                 showSection('medical');
+                // 确保页面保持常亮
+                if ('wakeLock' in navigator) {
+                    navigator.wakeLock.request('screen')
+                        .then(lock => {
+                            window.addEventListener('beforeunload', () => {
+                                lock.release();
+                            });
+                        })
+                        .catch(err => console.error('保持屏幕常亮失败:', err));
+                }
             }, 3000);
         }
 
@@ -611,7 +698,7 @@
             updateMedicalDisplay();
             initSpeechRecognition();
             startListening();
-            speak('您好，我是您的智能助手，您可以通过语音命令来使用各项功能');
+            speak('您好，我是您的智能助手，您可以通过语音命令来使用各项功能，也可以按住说话按钮进行语音输入');
         });
     </script>
 </body>
