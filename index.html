@@ -21,24 +21,13 @@
         }
 
         #settings-btn {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            font-size: 30px;
+            position: static;
+            font-size: 24px;
             background: none;
             border: none;
             cursor: pointer;
-            z-index: 1000;
-            transform: rotate(0deg);
-            transition: transform 0.3s;
-            padding: 10px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.9);
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-
-        #settings-btn:hover {
-            transform: rotate(90deg);
+            padding: 8px;
+            margin-left: 10px;
         }
 
         .menu-btn {
@@ -68,7 +57,7 @@
         .container {
             max-width: 600px;
             margin: 0 auto;
-            position: relative;
+            padding: 20px;
             padding-top: 60px;
         }
 
@@ -153,12 +142,19 @@
 
         .weather-info {
             text-align: left;
-            padding: 8px;
+            padding: 8px 15px;
             margin-bottom: 10px;
             display: flex;
             align-items: center;
             justify-content: space-between;
             width: 100%;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            z-index: 999;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
 
         .weather-container {
@@ -209,17 +205,15 @@
     <div class="container">
         <!-- 天气信息 -->
         <div class="weather-info" id="weather-info">
-            <div class="weather-row">
+            <div class="weather-container">
                 <span id="date-time"></span>
+                <div id="weather">
+                    <img id="weather-icon" class="weather-icon" src="" alt="天气">
+                    <span id="weather-text"></span>
+                </div>
             </div>
-            <div class="weather-row">
-                <img id="weather-icon" class="weather-icon" src="" alt="天气">
-                <span id="weather"></span>
-            </div>
+            <button id="settings-btn" onclick="showSection('settings')">⚙️</button>
         </div>
-
-        <!-- 设置按钮 -->
-        <button id="settings-btn" onclick="showSection('settings')">⚙️</button>
 
         <!-- 主菜单 -->
         <section id="main-menu">
@@ -675,7 +669,7 @@
                 const data = await response.json();
                 if (data.status === '1' && data.lives && data.lives[0]) {
                     const weather = data.lives[0];
-                    const weatherElement = document.getElementById('weather');
+                    const weatherElement = document.getElementById('weather-text');
                     if (weatherElement) {
                         weatherElement.textContent = `${weather.temperature}°C ${weather.weather}`;
                     }
