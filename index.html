@@ -152,11 +152,14 @@
             top: 0;
             left: 0;
             right: 0;
-            background: white;
+            background: rgba(255, 255, 255, 0.95);
             z-index: 999;
             box-sizing: border-box;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             -webkit-transform: translateZ(0);
             transform: translateZ(0);
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
         }
 
         .weather-container {
@@ -166,30 +169,31 @@
             padding-right: 20px;
             -webkit-transform: translateZ(0);
             transform: translateZ(0);
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
         }
 
-        #date-time {
+        #date-time, #weather {
             font-size: 16px;
             color: #333;
-            display: block;
-            margin-bottom: 2px;
-            white-space: nowrap;
+            margin: 2px 0;
+            line-height: 1.4;
+            -webkit-transform: translateZ(0);
+            transform: translateZ(0);
         }
 
         #weather {
-            font-size: 16px;
-            color: #666;
             display: flex;
             align-items: center;
-            gap: 3px;
-            white-space: nowrap;
+            gap: 5px;
         }
 
         .weather-icon {
-            width: 18px;
-            height: 18px;
+            width: 24px;
+            height: 24px;
             display: inline-block;
             vertical-align: middle;
+            margin-right: 4px;
         }
 
         .send-btn {
@@ -365,7 +369,7 @@
             }
         }
 
-        // 语音播报函数
+        // 修改语音播报函数
         function speak(text) {
             if (!text) return;
             
@@ -375,27 +379,53 @@
             // 创建新的语音实例
             const utterance = new SpeechSynthesisUtterance(text);
             utterance.lang = 'zh-CN';
-            utterance.rate = 1.0;
+            utterance.rate = 0.9;  // 降低语速以提高清晰度
             utterance.pitch = 1.0;
             utterance.volume = 1.0;
 
-            // 如果有可用的中文语音，使用中文语音
-            if (voices.length === 0) {
-                voices = synth.getVoices();
-            }
-            
-            const chineseVoice = voices.find(voice => 
-                voice.lang.includes('zh') || 
-                voice.lang.includes('cmn') || 
-                voice.name.includes('Chinese')
-            );
-            
-            if (chineseVoice) {
-                utterance.voice = chineseVoice;
+            // Safari特殊处理
+            if (/^((?!chrome|android).)*safari/i.test(navigator.userAgent)) {
+                utterance.rate = 0.8;  // Safari专用语速
+                utterance.pitch = 1.1;  // Safari专用音调
             }
 
-            // 播放语音
-            synth.speak(utterance);
+            // 确保语音列表已加载
+            const loadVoices = () => {
+                voices = synth.getVoices();
+                const chineseVoice = voices.find(voice => 
+                    voice.lang.includes('zh') || 
+                    voice.lang.includes('cmn') || 
+                    voice.name.includes('Chinese') ||
+                    voice.name.includes('中文')
+                );
+                
+                if (chineseVoice) {
+                    utterance.voice = chineseVoice;
+                }
+
+                // 添加错误处理
+                utterance.onerror = (event) => {
+                    console.error('语音合成错误:', event);
+                    // 尝试重新播放
+                    setTimeout(() => synth.speak(utterance), 100);
+                };
+
+                // 确保语音开始播放
+                utterance.onstart = () => {
+                    console.log('语音开始播放');
+                };
+
+                // 播放语音
+                setTimeout(() => {
+                    synth.speak(utterance);
+                }, 100);
+            };
+
+            if (voices.length === 0) {
+                synth.addEventListener('voiceschanged', loadVoices, { once: true });
+            } else {
+                loadVoices();
+            }
         }
 
         // 修改时间显示函数
@@ -414,6 +444,11 @@
                 if (dateTimeElement) {
                     dateTimeElement.innerHTML = `${month}月${date}日 ${weekday} ${hours}:${minutes}`;
                     dateTimeElement.style.visibility = 'visible';
+                    dateTimeElement.style.opacity = '1';
+                    dateTimeElement.style.display = 'block';
+                    dateTimeElement.style.whiteSpace = 'nowrap';
+                    dateTimeElement.style.textOverflow = 'ellipsis';
+                    dateTimeElement.style.overflow = 'hidden';
                 }
             } catch (error) {
                 console.error('更新时间显示失败:', error);
@@ -690,6 +725,11 @@
                     if (weatherTextElement) {
                         weatherTextElement.innerHTML = `${weather.temperature}°C ${weather.weather}`;
                         weatherTextElement.style.visibility = 'visible';
+                        weatherTextElement.style.opacity = '1';
+                        weatherTextElement.style.display = 'inline-block';
+                        weatherTextElement.style.whiteSpace = 'nowrap';
+                        weatherTextElement.style.textOverflow = 'ellipsis';
+                        weatherTextElement.style.overflow = 'hidden';
                     }
                     
                     if (weatherIcon) {
