@@ -155,17 +155,26 @@
             text-align: left;
             padding: 8px;
             margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+        }
+
+        .weather-container {
+            display: flex;
+            flex-direction: column;
         }
 
         #date-time {
-            font-size: 14px;
+            font-size: 16px;
             color: #333;
             display: block;
             margin-bottom: 2px;
         }
 
         #weather {
-            font-size: 14px;
+            font-size: 16px;
             color: #666;
             display: flex;
             align-items: center;
@@ -173,8 +182,8 @@
         }
 
         .weather-icon {
-            width: 16px;
-            height: 16px;
+            width: 18px;
+            height: 18px;
         }
 
         .send-btn {
@@ -338,6 +347,19 @@
         // 初始化语音合成
         let synth = window.speechSynthesis;
         let voices = [];
+        let wakeLock = null;
+
+        // 获取屏幕常亮锁
+        async function getWakeLock() {
+            try {
+                wakeLock = await navigator.wakeLock.request('screen');
+                wakeLock.addEventListener('release', () => {
+                    console.log('屏幕常亮已释放');
+                });
+            } catch (err) {
+                console.error('获取屏幕常亮失败:', err);
+            }
+        }
 
         // 语音播报函数
         function speak(text) {
@@ -550,9 +572,12 @@
         }
 
         // 处理紧急求救
-        function handleEmergency() {
+        async function handleEmergency() {
             speak('紧急求救');
             const phoneNumber = '120';
+            
+            // 获取屏幕常亮锁
+            await getWakeLock();
             
             const link = document.createElement('a');
             link.href = `tel:${phoneNumber}`;
@@ -683,9 +708,11 @@
             if (synth.getVoices().length === 0) {
                 synth.addEventListener('voiceschanged', () => {
                     voices = synth.getVoices();
+                    speak('您好，我是您的智能助手，请点击按钮使用各项功能');
                 });
             } else {
                 voices = synth.getVoices();
+                speak('您好，我是您的智能助手，请点击按钮使用各项功能');
             }
 
             // 初始化页面
@@ -693,29 +720,9 @@
             getWeather();
             setInterval(updateDateTime, 1000);
             setInterval(getWeather, 1800000);
-
-            // 添加用户交互事件来激活语音
-            document.body.addEventListener('click', () => {
-                speak('您好，我是您的智能助手，请点击按钮使用各项功能');
-            }, { once: true });
         });
 
         // 修改按钮点击事件处理函数
-        function handleEmergency() {
-            speak('紧急求救');
-            const phoneNumber = '120';
-            
-            const link = document.createElement('a');
-            link.href = `tel:${phoneNumber}`;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-
-            setTimeout(() => {
-                showSection('medical');
-            }, 3000);
-        }
-
         function handleFamilyCall() {
             speak('呼叫亲属');
             const phoneNumber = phoneNumbers.family;
