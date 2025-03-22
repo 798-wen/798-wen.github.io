@@ -213,6 +213,12 @@
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
             z-index: 1000;
             display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .weather-row {
+            display: flex;
             align-items: center;
             gap: 10px;
         }
@@ -227,9 +233,13 @@
     <div class="container">
         <!-- 天气信息 -->
         <div class="weather-info" id="weather-info">
-            <span id="date-time"></span>
-            <img id="weather-icon" class="weather-icon" src="" alt="天气">
-            <span id="weather"></span>
+            <div class="weather-row">
+                <span id="date-time"></span>
+            </div>
+            <div class="weather-row">
+                <img id="weather-icon" class="weather-icon" src="" alt="天气">
+                <span id="weather"></span>
+            </div>
         </div>
 
         <!-- 设置按钮 -->
@@ -435,11 +445,13 @@
                 voiceInputBtn.classList.add('recording');
                 voiceInputBtn.textContent = '松开结束';
                 startListening();
+                speak('开始录音');
             } else {
                 // 结束录音
                 voiceInputBtn.classList.remove('recording');
                 voiceInputBtn.textContent = '按住说话';
                 stopListening();
+                speak('结束录音');
                 // 清除临时显示的消息
                 const messages = document.getElementById('chat-messages');
                 const lastMessage = messages.lastElementChild;
@@ -458,6 +470,7 @@
                     document.getElementById('voice-status').style.display = 'block';
                 } catch (error) {
                     console.error('启动语音识别失败:', error);
+                    speak('语音识别启动失败，请重试');
                 }
             }
         }
@@ -549,7 +562,10 @@
             const targetSection = document.getElementById(sectionId);
             if (targetSection) {
                 targetSection.classList.remove('hidden');
-                if(sectionId === 'medical') updateMedicalDisplay();
+                if(sectionId === 'medical') {
+                    updateMedicalDisplay();
+                    speak('我的基础病');
+                }
                 if(sectionId === 'settings') loadSettings();
                 if(sectionId === 'ai-chat') loadChatHistory();
                 
@@ -591,6 +607,12 @@
             const input = document.getElementById('chat-input');
             const message = input.value.trim();
             if (!message) return;
+
+            // 检查是否包含紧急求救关键词
+            if (message.includes('救命') || message.includes('紧急求救') || message.includes('救救我')) {
+                handleEmergency();
+                return;
+            }
 
             speak('发送问题');
             // 添加用户消息
