@@ -122,6 +122,7 @@
             margin: 10px 0;
             padding: 10px;
             border-radius: 8px;
+            font-size: 28px;
         }
 
         .user-message {
@@ -132,12 +133,13 @@
         .ai-message {
             background: #F5F5F5;
             margin-right: 20%;
+            line-height: 1.5;
         }
 
         .chat-input {
             width: 100%;
             padding: 15px;
-            font-size: 20px;
+            font-size: 28px;
             border: 2px solid #ddd;
             border-radius: 8px;
             margin-top: 10px;
@@ -347,6 +349,7 @@
             const message = input.value.trim();
             if (!message) return;
 
+            speak('发送问题');
             // 添加用户消息
             addMessage(message, 'user');
             input.value = '';
@@ -363,7 +366,7 @@
                         messages: [
                             {
                                 role: "system",
-                                content: "你是一个专业的老年健康助手，请用简单易懂的语言回答问题。"
+                                content: "你是一个专业的老年健康助手，请用简单易懂的语言回答问题。回答要简短、清晰，避免使用专业术语，用通俗易懂的比喻来解释。"
                             },
                             {
                                 role: "user",
@@ -382,30 +385,57 @@
                 if (data.choices && data.choices[0] && data.choices[0].message) {
                     const aiResponse = data.choices[0].message.content;
                     addMessage(aiResponse, 'ai');
+                    // 语音播放AI回答
+                    speak(aiResponse);
                 } else {
                     throw new Error('API响应格式错误');
                 }
             } catch (error) {
                 console.error('AI响应错误:', error);
-                addMessage('抱歉，我现在无法回答您的问题。请稍后再试。', 'ai');
+                const errorMessage = '抱歉，我现在无法回答您的问题。请稍后再试。';
+                addMessage(errorMessage, 'ai');
+                speak(errorMessage);
             }
         }
 
         // 处理紧急求救
         function handleEmergency() {
+            speak('紧急求救');
             const phoneNumber = '120';
             if (navigator.userAgent.match(/iPhone|iPad|iPod/i)) {
-                window.location.href = `tel://${phoneNumber}`;
+                // Safari浏览器特殊处理
+                const iframe = document.createElement('iframe');
+                iframe.style.display = 'none';
+                document.body.appendChild(iframe);
+                iframe.contentWindow.location.href = `tel://${phoneNumber}`;
+                setTimeout(() => {
+                    document.body.removeChild(iframe);
+                    // 延迟跳转到基础病页面
+                    setTimeout(() => {
+                        showSection('medical');
+                    }, 1000);
+                }, 100);
             } else {
                 window.location.href = `tel:${phoneNumber}`;
+                // 延迟跳转到基础病页面
+                setTimeout(() => {
+                    showSection('medical');
+                }, 1000);
             }
         }
 
         // 处理呼叫亲属
         function handleFamilyCall() {
+            speak('呼叫亲属');
             const phoneNumber = phoneNumbers.family;
             if (navigator.userAgent.match(/iPhone|iPad|iPod/i)) {
-                window.location.href = `tel://${phoneNumber}`;
+                const iframe = document.createElement('iframe');
+                iframe.style.display = 'none';
+                document.body.appendChild(iframe);
+                iframe.contentWindow.location.href = `tel://${phoneNumber}`;
+                setTimeout(() => {
+                    document.body.removeChild(iframe);
+                }, 100);
             } else {
                 window.location.href = `tel:${phoneNumber}`;
             }
@@ -413,9 +443,16 @@
 
         // 处理物业联系
         function handlePropertyCall() {
+            speak('物业联系');
             const phoneNumber = phoneNumbers.property;
             if (navigator.userAgent.match(/iPhone|iPad|iPod/i)) {
-                window.location.href = `tel://${phoneNumber}`;
+                const iframe = document.createElement('iframe');
+                iframe.style.display = 'none';
+                document.body.appendChild(iframe);
+                iframe.contentWindow.location.href = `tel://${phoneNumber}`;
+                setTimeout(() => {
+                    document.body.removeChild(iframe);
+                }, 100);
             } else {
                 window.location.href = `tel:${phoneNumber}`;
             }
@@ -423,9 +460,16 @@
 
         // 处理社区医生电话
         function handleDoctorCall() {
+            speak('呼叫社区医生');
             const phoneNumber = phoneNumbers.doctor;
             if (navigator.userAgent.match(/iPhone|iPad|iPod/i)) {
-                window.location.href = `tel://${phoneNumber}`;
+                const iframe = document.createElement('iframe');
+                iframe.style.display = 'none';
+                document.body.appendChild(iframe);
+                iframe.contentWindow.location.href = `tel://${phoneNumber}`;
+                setTimeout(() => {
+                    document.body.removeChild(iframe);
+                }, 100);
             } else {
                 window.location.href = `tel:${phoneNumber}`;
             }
@@ -478,6 +522,8 @@
             if ('speechSynthesis' in window) {
                 const utterance = new SpeechSynthesisUtterance(text);
                 utterance.lang = 'zh-CN';
+                utterance.rate = 0.9;
+                utterance.pitch = 1.0;
                 window.speechSynthesis.speak(utterance);
             }
         }
