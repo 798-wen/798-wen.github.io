@@ -161,9 +161,9 @@
         <!-- 主菜单 -->
         <section id="main-menu">
             <button class="menu-btn" onclick="handleEmergency()">紧急求救</button>
-            <button class="menu-btn" onclick="showSection('family')">呼叫亲属</button>
+            <button class="menu-btn" onclick="handleFamilyCall()">呼叫亲属</button>
             <button class="menu-btn" onclick="showSection('doctor')">社区医生</button>
-            <button class="menu-btn" onclick="showSection('property')">物业联系</button>
+            <button class="menu-btn" onclick="handlePropertyCall()">物业联系</button>
             <button class="menu-btn" onclick="showSection('ai-chat')">万能问答</button>
             <button class="menu-btn" onclick="showSection('medical')">我的基础病</button>
         </section>
@@ -230,6 +230,27 @@
                 </div>
             </div>
             <button class="menu-btn back-btn" onclick="backToMenu()">← 返回主菜单</button>
+        </section>
+
+        <!-- 社区医生界面 -->
+        <section id="doctor" class="hidden">
+            <h1>👨‍⚕️ 社区医生</h1>
+            <button class="menu-btn" onclick="handleDoctorCall()">拨打电话</button>
+            <button class="menu-btn" onclick="showSection('doctor-message')">发送信息</button>
+            <button class="menu-btn back-btn" onclick="backToMenu()">← 返回主菜单</button>
+        </section>
+
+        <!-- 发送信息给医生界面 -->
+        <section id="doctor-message" class="hidden">
+            <h1>📝 发送信息给医生</h1>
+            <div class="settings-form">
+                <div class="setting-item">
+                    <label>消息内容：</label>
+                    <textarea class="settings-input" id="doctor-message-content" rows="4" placeholder="请输入要发送给医生的消息..."></textarea>
+                </div>
+                <button class="menu-btn" onclick="sendDoctorMessage()">发送消息</button>
+            </div>
+            <button class="menu-btn back-btn" onclick="showSection('doctor')">← 返回</button>
         </section>
     </div>
 
@@ -321,14 +342,40 @@
 
         // 处理紧急求救
         function handleEmergency() {
-            if (confirm('确定要拨打紧急求救电话吗？')) {
-                window.location.href = 'tel:120';
-            }
+            window.location.href = 'tel:120';
         }
 
-        // 拨打电话
-        function callNumber(number) {
-            window.location.href = `tel:${number}`;
+        // 处理呼叫亲属
+        function handleFamilyCall() {
+            window.location.href = `tel:${phoneNumbers.family}`;
+        }
+
+        // 处理物业联系
+        function handlePropertyCall() {
+            window.location.href = `tel:${phoneNumbers.property}`;
+        }
+
+        // 处理社区医生电话
+        function handleDoctorCall() {
+            window.location.href = `tel:${phoneNumbers.doctor}`;
+        }
+
+        // 发送消息给医生
+        function sendDoctorMessage() {
+            const message = document.getElementById('doctor-message-content').value.trim();
+            if (!message) {
+                alert('请输入要发送的消息内容');
+                return;
+            }
+
+            // 使用短信API发送消息
+            window.location.href = `sms:${phoneNumbers.doctor}?body=${encodeURIComponent(message)}`;
+            
+            // 清空输入框
+            document.getElementById('doctor-message-content').value = '';
+            
+            // 返回医生选项界面
+            showSection('doctor');
         }
 
         // 加载聊天历史
