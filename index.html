@@ -27,7 +27,7 @@
             border: none;
             cursor: pointer;
             padding: 8px;
-            margin-left: 10px;
+            margin-right: 10px;
         }
 
         .menu-btn {
@@ -155,11 +155,14 @@
             background: white;
             z-index: 999;
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            box-sizing: border-box;
         }
 
         .weather-container {
             display: flex;
             flex-direction: column;
+            flex: 1;
+            padding-right: 20px;
         }
 
         #date-time {
@@ -390,19 +393,25 @@
 
         // 修改时间显示函数
         function updateDateTime() {
-            const now = new Date();
-            const weekdays = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
-            
-            const dateStr = `${now.getMonth() + 1}月${now.getDate()}日 ${weekdays[now.getDay()]}`;
-            const timeStr = now.toLocaleTimeString('zh-CN', { 
-                hour: '2-digit', 
-                minute: '2-digit',
-                hour12: false
-            });
-            
-            const dateTimeElement = document.getElementById('date-time');
-            if (dateTimeElement) {
-                dateTimeElement.textContent = `${dateStr} ${timeStr}`;
+            try {
+                const now = new Date();
+                const weekdays = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+                
+                const month = now.getMonth() + 1;
+                const date = now.getDate();
+                const weekday = weekdays[now.getDay()];
+                const hours = String(now.getHours()).padStart(2, '0');
+                const minutes = String(now.getMinutes()).padStart(2, '0');
+                
+                const dateStr = `${month}月${date}日 ${weekday}`;
+                const timeStr = `${hours}:${minutes}`;
+                
+                const dateTimeElement = document.getElementById('date-time');
+                if (dateTimeElement) {
+                    dateTimeElement.textContent = `${dateStr} ${timeStr}`;
+                }
+            } catch (error) {
+                console.error('更新时间显示失败:', error);
             }
         }
 
@@ -665,30 +674,37 @@
         // 获取天气信息
         async function getWeather() {
             try {
-                const response = await fetch(`https://restapi.amap.com/v3/weather/weatherInfo?key=958751838a76784f2b411f8bfb469548&city=110101`);
+                const response = await fetch('https://restapi.amap.com/v3/weather/weatherInfo?key=958751838a76784f2b411f8bfb469548&city=110101&extensions=base');
                 const data = await response.json();
+                
                 if (data.status === '1' && data.lives && data.lives[0]) {
                     const weather = data.lives[0];
-                    const weatherElement = document.getElementById('weather-text');
-                    if (weatherElement) {
-                        weatherElement.textContent = `${weather.temperature}°C ${weather.weather}`;
+                    const weatherTextElement = document.getElementById('weather-text');
+                    const weatherIcon = document.getElementById('weather-icon');
+                    
+                    if (weatherTextElement) {
+                        weatherTextElement.textContent = `${weather.temperature}°C ${weather.weather}`;
                     }
                     
-                    // 根据天气设置图标
-                    const weatherIcon = document.getElementById('weather-icon');
                     if (weatherIcon) {
-                        const weatherText = weather.weather.toLowerCase();
+                        const weatherText = weather.weather;
+                        let iconUrl = './images/cloudy.png'; // 默认多云
+                        
                         if (weatherText.includes('晴')) {
-                            weatherIcon.src = 'https://api.iconify.design/emojione:sun.svg';
+                            iconUrl = 'https://api.iconify.design/emojione:sun.svg';
                         } else if (weatherText.includes('多云')) {
-                            weatherIcon.src = 'https://api.iconify.design/emojione:partly-sunny.svg';
+                            iconUrl = 'https://api.iconify.design/emojione:partly-sunny.svg';
                         } else if (weatherText.includes('雨')) {
-                            weatherIcon.src = 'https://api.iconify.design/emojione:umbrella-with-rain-drops.svg';
+                            iconUrl = 'https://api.iconify.design/emojione:umbrella-with-rain-drops.svg';
                         } else if (weatherText.includes('雪')) {
-                            weatherIcon.src = 'https://api.iconify.design/emojione:snowflake.svg';
+                            iconUrl = 'https://api.iconify.design/emojione:snowflake.svg';
                         } else {
-                            weatherIcon.src = 'https://api.iconify.design/emojione:cloud.svg';
+                            iconUrl = 'https://api.iconify.design/emojione:cloud.svg';
                         }
+                        
+                        weatherIcon.src = iconUrl;
+                        weatherIcon.style.width = '18px';
+                        weatherIcon.style.height = '18px';
                     }
                 }
             } catch (error) {
