@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="permissions-policy" content="microphone=*, camera=*, geolocation=*, payment=*, usb=*, fullscreen=*, display-capture=*">
     <title>老年智能手环助手</title>
     <style>
         :root {
@@ -342,22 +343,62 @@
 
         // 处理紧急求救
         function handleEmergency() {
-            window.location.href = 'tel:120';
+            if (navigator.permissions && navigator.permissions.query) {
+                navigator.permissions.query({ name: 'notifications' }).then(function(permissionStatus) {
+                    if (permissionStatus.state === 'granted') {
+                        window.location.href = 'tel:120';
+                    } else {
+                        alert('请在浏览器设置中允许网站发起通话');
+                    }
+                });
+            } else {
+                window.location.href = 'tel:120';
+            }
         }
 
         // 处理呼叫亲属
         function handleFamilyCall() {
-            window.location.href = `tel:${phoneNumbers.family}`;
+            if (navigator.permissions && navigator.permissions.query) {
+                navigator.permissions.query({ name: 'notifications' }).then(function(permissionStatus) {
+                    if (permissionStatus.state === 'granted') {
+                        window.location.href = `tel:${phoneNumbers.family}`;
+                    } else {
+                        alert('请在浏览器设置中允许网站发起通话');
+                    }
+                });
+            } else {
+                window.location.href = `tel:${phoneNumbers.family}`;
+            }
         }
 
         // 处理物业联系
         function handlePropertyCall() {
-            window.location.href = `tel:${phoneNumbers.property}`;
+            if (navigator.permissions && navigator.permissions.query) {
+                navigator.permissions.query({ name: 'notifications' }).then(function(permissionStatus) {
+                    if (permissionStatus.state === 'granted') {
+                        window.location.href = `tel:${phoneNumbers.property}`;
+                    } else {
+                        alert('请在浏览器设置中允许网站发起通话');
+                    }
+                });
+            } else {
+                window.location.href = `tel:${phoneNumbers.property}`;
+            }
         }
 
         // 处理社区医生电话
         function handleDoctorCall() {
-            window.location.href = `tel:${phoneNumbers.doctor}`;
+            if (navigator.permissions && navigator.permissions.query) {
+                navigator.permissions.query({ name: 'notifications' }).then(function(permissionStatus) {
+                    if (permissionStatus.state === 'granted') {
+                        window.location.href = `tel:${phoneNumbers.doctor}`;
+                    } else {
+                        alert('请在浏览器设置中允许网站发起通话');
+                    }
+                });
+            } else {
+                window.location.href = `tel:${phoneNumbers.doctor}`;
+            }
         }
 
         // 发送消息给医生
@@ -402,22 +443,39 @@
             input.value = '';
 
             try {
-                // 这里需要替换为实际的豆包AI API调用
+                // 使用豆包AI的免费API
                 const response = await fetch('https://api.doubao.com/v1/chat/completions', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': 'Bearer YOUR_DOUBAO_API_KEY'
+                        'Authorization': '76e27114-ba0d-4348-a75f-5af0099d12ca' // 替换为您的豆包AI API密钥
                     },
                     body: JSON.stringify({
-                        messages: [{ role: 'user', content: message }]
+                        model: "doubao-text-v1",
+                        messages: [
+                            {
+                                role: "system",
+                                content: "你是一个专业的老年健康助手，请用简单易懂的语言回答问题。"
+                            },
+                            {
+                                role: "user",
+                                content: message
+                            }
+                        ],
+                        temperature: 0.7,
+                        max_tokens: 1000
                     })
                 });
+
+                if (!response.ok) {
+                    throw new Error('API请求失败');
+                }
 
                 const data = await response.json();
                 const aiResponse = data.choices[0].message.content;
                 addMessage(aiResponse, 'ai');
             } catch (error) {
+                console.error('AI响应错误:', error);
                 addMessage('抱歉，我现在无法回答您的问题。请稍后再试。', 'ai');
             }
         }
