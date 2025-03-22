@@ -154,8 +154,9 @@
             right: 0;
             background: white;
             z-index: 999;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
             box-sizing: border-box;
+            -webkit-transform: translateZ(0);
+            transform: translateZ(0);
         }
 
         .weather-container {
@@ -163,6 +164,8 @@
             flex-direction: column;
             flex: 1;
             padding-right: 20px;
+            -webkit-transform: translateZ(0);
+            transform: translateZ(0);
         }
 
         #date-time {
@@ -170,6 +173,7 @@
             color: #333;
             display: block;
             margin-bottom: 2px;
+            white-space: nowrap;
         }
 
         #weather {
@@ -178,11 +182,14 @@
             display: flex;
             align-items: center;
             gap: 3px;
+            white-space: nowrap;
         }
 
         .weather-icon {
             width: 18px;
             height: 18px;
+            display: inline-block;
+            vertical-align: middle;
         }
 
         .send-btn {
@@ -403,12 +410,10 @@
                 const hours = String(now.getHours()).padStart(2, '0');
                 const minutes = String(now.getMinutes()).padStart(2, '0');
                 
-                const dateStr = `${month}月${date}日 ${weekday}`;
-                const timeStr = `${hours}:${minutes}`;
-                
                 const dateTimeElement = document.getElementById('date-time');
                 if (dateTimeElement) {
-                    dateTimeElement.textContent = `${dateStr} ${timeStr}`;
+                    dateTimeElement.innerHTML = `${month}月${date}日 ${weekday} ${hours}:${minutes}`;
+                    dateTimeElement.style.visibility = 'visible';
                 }
             } catch (error) {
                 console.error('更新时间显示失败:', error);
@@ -683,28 +688,30 @@
                     const weatherIcon = document.getElementById('weather-icon');
                     
                     if (weatherTextElement) {
-                        weatherTextElement.textContent = `${weather.temperature}°C ${weather.weather}`;
+                        weatherTextElement.innerHTML = `${weather.temperature}°C ${weather.weather}`;
+                        weatherTextElement.style.visibility = 'visible';
                     }
                     
                     if (weatherIcon) {
                         const weatherText = weather.weather;
-                        let iconUrl = './images/cloudy.png'; // 默认多云
+                        let iconUrl;
                         
                         if (weatherText.includes('晴')) {
-                            iconUrl = 'https://api.iconify.design/emojione:sun.svg';
+                            iconUrl = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0Ij48Y2lyY2xlIGN4PSIxMiIgY3k9IjEyIiByPSI1IiBmaWxsPSIjZmZhYTAwIi8+PHBhdGggZD0iTTEyIDNoLTJ2NGgyVjN6bTAgMTR2NGgydi00aC0yem05LTloLTR2Mmg0VjhoLTR6TTMgOHY0aDRWOEgzeiIgZmlsbD0iI2ZmYWEwMCIvPjwvc3ZnPg==';
                         } else if (weatherText.includes('多云')) {
-                            iconUrl = 'https://api.iconify.design/emojione:partly-sunny.svg';
+                            iconUrl = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0Ij48cGF0aCBkPSJNMTkuMzUgMTAuMDRBNy40OSA3LjQ5IDAgMCAwIDEyIDRDOS4xMSA0IDYuNiA1LjY0IDUuMzUgOC4wNEEzLjk5MyAzLjk5MyAwIDAgMCAyIDEyYzAgMi4yMSAxLjc5IDQgNCA0aDE0YzEuNjUgMCAzLTEuMzUgMy0zIDAtMS42NS0xLjM1LTMtMy0zeiIgZmlsbD0iI2JkYmRiZCIvPjwvc3ZnPg==';
                         } else if (weatherText.includes('雨')) {
-                            iconUrl = 'https://api.iconify.design/emojione:umbrella-with-rain-drops.svg';
+                            iconUrl = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0Ij48cGF0aCBkPSJNMTcuNjYgOEwxNyA3LjM0QzE1LjczIDYuMDcgMTQgNS41IDEyIDUuNXMtMy43My41Ny01IDEuODRMNi4zNCA4QzQuNSA5Ljg0IDMuNSAxMi4zMyAzLjUgMTVjMCAzLjg2IDMuMTQgNyA3IDdzNy0zLjE0IDctN2MwLTIuNjctMS0xNS4xNi0yLjg0LTE3eiIgZmlsbD0iIzY0YjVmNiIvPjwvc3ZnPg==';
                         } else if (weatherText.includes('雪')) {
-                            iconUrl = 'https://api.iconify.design/emojione:snowflake.svg';
+                            iconUrl = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0Ij48cGF0aCBkPSJNMjIgMTEuNUMyMiA2LjA1IDE3LjUgMiAxMiAyUzIgNi4wNSAyIDExLjVjMCAzLjMxIDIuNjkgNiA2IDZoMTBjMi4zMSAwIDQtMS42OSA0LTR6IiBmaWxsPSIjZTBlMGUwIi8+PC9zdmc+';
                         } else {
-                            iconUrl = 'https://api.iconify.design/emojione:cloud.svg';
+                            iconUrl = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0Ij48cGF0aCBkPSJNMTkuMzUgMTAuMDRBNy40OSA3LjQ5IDAgMCAwIDEyIDRDOS4xMSA0IDYuNiA1LjY0IDUuMzUgOC4wNEEzLjk5MyAzLjk5MyAwIDAgMCAyIDEyYzAgMi4yMSAxLjc5IDQgNCA0aDE0YzEuNjUgMCAzLTEuMzUgMy0zIDAtMS42NS0xLjM1LTMtMy0zeiIgZmlsbD0iI2JkYmRiZCIvPjwvc3ZnPg==';
                         }
                         
                         weatherIcon.src = iconUrl;
                         weatherIcon.style.width = '18px';
                         weatherIcon.style.height = '18px';
+                        weatherIcon.style.visibility = 'visible';
                     }
                 }
             } catch (error) {
@@ -714,6 +721,12 @@
 
         // 初始化函数
         document.addEventListener('DOMContentLoaded', () => {
+            // 确保天气信息容器可见
+            const weatherInfo = document.getElementById('weather-info');
+            if (weatherInfo) {
+                weatherInfo.style.visibility = 'visible';
+            }
+
             // 初始化语音
             if (synth.getVoices().length === 0) {
                 synth.addEventListener('voiceschanged', () => {
