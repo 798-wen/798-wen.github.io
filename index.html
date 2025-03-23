@@ -379,75 +379,52 @@
             // 创建新的语音实例
             const utterance = new SpeechSynthesisUtterance(text);
             utterance.lang = 'zh-CN';
-            utterance.rate = 0.9;
+            utterance.rate = 0.9;  // 降低语速以提高清晰度
             utterance.pitch = 1.0;
             utterance.volume = 1.0;
 
-            // 针对安卓系统的特殊处理
-            if (/Android/i.test(navigator.userAgent)) {
-                utterance.rate = 0.8;
-                utterance.pitch = 1.1;
-                // 确保安卓系统能正确加载语音
-                if (voices.length === 0) {
-                    synth.addEventListener('voiceschanged', () => {
-                        voices = synth.getVoices();
-                        const chineseVoice = voices.find(voice => 
-                            voice.lang.includes('zh') || 
-                            voice.lang.includes('cmn') || 
-                            voice.name.includes('Chinese') ||
-                            voice.name.includes('中文')
-                        );
-                        if (chineseVoice) {
-                            utterance.voice = chineseVoice;
-                        }
-                        synth.speak(utterance);
-                    }, { once: true });
-                } else {
-                    const chineseVoice = voices.find(voice => 
-                        voice.lang.includes('zh') || 
-                        voice.lang.includes('cmn') || 
-                        voice.name.includes('Chinese') ||
-                        voice.name.includes('中文')
-                    );
-                    if (chineseVoice) {
-                        utterance.voice = chineseVoice;
-                    }
-                    synth.speak(utterance);
+            // Safari特殊处理
+            if (/^((?!chrome|android).)*safari/i.test(navigator.userAgent)) {
+                utterance.rate = 0.8;  // Safari专用语速
+                utterance.pitch = 1.1;  // Safari专用音调
+            }
+
+            // 确保语音列表已加载
+            const loadVoices = () => {
+                voices = synth.getVoices();
+                const chineseVoice = voices.find(voice => 
+                    voice.lang.includes('zh') || 
+                    voice.lang.includes('cmn') || 
+                    voice.name.includes('Chinese') ||
+                    voice.name.includes('中文')
+                );
+                
+                if (chineseVoice) {
+                    utterance.voice = chineseVoice;
                 }
-            } else {
-                // 其他系统的处理保持不变
-                const loadVoices = () => {
-                    voices = synth.getVoices();
-                    const chineseVoice = voices.find(voice => 
-                        voice.lang.includes('zh') || 
-                        voice.lang.includes('cmn') || 
-                        voice.name.includes('Chinese') ||
-                        voice.name.includes('中文')
-                    );
-                    
-                    if (chineseVoice) {
-                        utterance.voice = chineseVoice;
-                    }
 
-                    utterance.onerror = (event) => {
-                        console.error('语音合成错误:', event);
-                        setTimeout(() => synth.speak(utterance), 100);
-                    };
-
-                    utterance.onstart = () => {
-                        console.log('语音开始播放');
-                    };
-
-                    setTimeout(() => {
-                        synth.speak(utterance);
-                    }, 100);
+                // 添加错误处理
+                utterance.onerror = (event) => {
+                    console.error('语音合成错误:', event);
+                    // 尝试重新播放
+                    setTimeout(() => synth.speak(utterance), 100);
                 };
 
-                if (voices.length === 0) {
-                    synth.addEventListener('voiceschanged', loadVoices, { once: true });
-                } else {
-                    loadVoices();
-                }
+                // 确保语音开始播放
+                utterance.onstart = () => {
+                    console.log('语音开始播放');
+                };
+
+                // 播放语音
+                setTimeout(() => {
+                    synth.speak(utterance);
+                }, 100);
+            };
+
+            if (voices.length === 0) {
+                synth.addEventListener('voiceschanged', loadVoices, { once: true });
+            } else {
+                loadVoices();
             }
         }
 
@@ -784,22 +761,6 @@
             }
         }
 
-        // 修改按钮点击事件处理函数
-        function handleButtonClick(event) {
-            // 防止事件冒泡
-            event.stopPropagation();
-            
-            // 获取按钮的onclick属性
-            const onclickAttr = event.currentTarget.getAttribute('onclick');
-            if (onclickAttr) {
-                // 执行onclick函数
-                const functionName = onclickAttr.replace('()', '');
-                if (typeof window[functionName] === 'function') {
-                    window[functionName]();
-                }
-            }
-        }
-
         // 初始化函数
         document.addEventListener('DOMContentLoaded', () => {
             // 确保天气信息容器可见
@@ -807,16 +768,6 @@
             if (weatherInfo) {
                 weatherInfo.style.visibility = 'visible';
             }
-
-            // 为所有按钮添加点击事件监听器
-            document.querySelectorAll('button').forEach(button => {
-                button.addEventListener('click', handleButtonClick);
-                // 移除原有的onclick属性，改用事件监听器
-                const onclickAttr = button.getAttribute('onclick');
-                if (onclickAttr) {
-                    button.removeAttribute('onclick');
-                }
-            });
 
             // 初始化语音
             if (synth.getVoices().length === 0) {
