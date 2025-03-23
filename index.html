@@ -18,6 +18,8 @@
             background: #F8F9FA;
             margin: 0;
             padding: 20px;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
         }
 
         #settings-btn {
@@ -28,6 +30,8 @@
             cursor: pointer;
             padding: 8px;
             margin-right: 10px;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
         }
 
         .menu-btn {
@@ -43,15 +47,24 @@
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
             cursor: pointer;
             transition: transform 0.2s;
+            -webkit-tap-highlight-color: transparent;
+            min-height: 60px;
+            touch-action: manipulation;
         }
 
         .menu-btn:hover {
             transform: scale(1.02);
         }
 
+        .menu-btn:active {
+            transform: scale(0.98) !important;
+        }
+
         .back-btn {
             background: #7F8C8D;
             width: 50%;
+            position: relative !important;
+            z-index: 1000;
         }
 
         .container {
@@ -357,6 +370,9 @@
         let voices = [];
         let wakeLock = null;
 
+        // 初始化用户交互状态
+        window.userInteracted = false;
+
         // 获取屏幕常亮锁
         async function getWakeLock() {
             try {
@@ -369,85 +385,65 @@
             }
         }
 
-        // 修改语音播报函数
+        // 重写语音合成函数
         function speak(text) {
             if (!text) return;
             
-            // 停止当前正在播放的语音
-            synth.cancel();
+            const playSpeech = () => {
+                synth.cancel();
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'zh-CN';
+                utterance.rate = /Android/.test(navigator.userAgent) ? 0.8 : 0.9;
+                utterance.pitch = 1.0;
+                utterance.volume = 1.0;
 
-            // 创建新的语音实例
-            const utterance = new SpeechSynthesisUtterance(text);
-            utterance.lang = 'zh-CN';
-            utterance.rate = 0.9;
-            utterance.pitch = 1.0;
-            utterance.volume = 1.0;
-
-            // 针对安卓系统的特殊处理
-            if (/Android/i.test(navigator.userAgent)) {
-                utterance.rate = 0.8;
-                utterance.pitch = 1.1;
-                // 确保安卓系统能正确加载语音
-                if (voices.length === 0) {
-                    synth.addEventListener('voiceschanged', () => {
-                        voices = synth.getVoices();
-                        const chineseVoice = voices.find(voice => 
-                            voice.lang.includes('zh') || 
-                            voice.lang.includes('cmn') || 
-                            voice.name.includes('Chinese') ||
-                            voice.name.includes('中文')
-                        );
-                        if (chineseVoice) {
-                            utterance.voice = chineseVoice;
-                        }
-                        synth.speak(utterance);
-                    }, { once: true });
-                } else {
-                    const chineseVoice = voices.find(voice => 
+                // 语音选择逻辑
+                const selectVoice = () => {
+                    const chineseVoice = synth.getVoices().find(voice => 
                         voice.lang.includes('zh') || 
                         voice.lang.includes('cmn') || 
                         voice.name.includes('Chinese') ||
                         voice.name.includes('中文')
                     );
-                    if (chineseVoice) {
-                        utterance.voice = chineseVoice;
-                    }
-                    synth.speak(utterance);
+                    if (chineseVoice) utterance.voice = chineseVoice;
                 }
-            } else {
-                // 其他系统的处理保持不变
-                const loadVoices = () => {
-                    voices = synth.getVoices();
-                    const chineseVoice = voices.find(voice => 
-                        voice.lang.includes('zh') || 
-                        voice.lang.includes('cmn') || 
-                        voice.name.includes('Chinese') ||
-                        voice.name.includes('中文')
-                    );
-                    
-                    if (chineseVoice) {
-                        utterance.voice = chineseVoice;
-                    }
 
-                    utterance.onerror = (event) => {
-                        console.error('语音合成错误:', event);
-                        setTimeout(() => synth.speak(utterance), 100);
-                    };
+                if (synth.getVoices().length === 0) {
+                    synth.onvoiceschanged = selectVoice;
+                } else {
+                    selectVoice();
+                }
 
-                    utterance.onstart = () => {
-                        console.log('语音开始播放');
-                    };
-
-                    setTimeout(() => {
-                        synth.speak(utterance);
-                    }, 100);
+                utterance.onerror = (event) => {
+                    console.error('语音合成错误:', event);
+                    setTimeout(() => synth.speak(utterance), 100);
                 };
 
-                if (voices.length === 0) {
-                    synth.addEventListener('voiceschanged', loadVoices, { once: true });
+                utterance.onstart = () => {
+                    console.log('语音开始播放');
+                };
+
+                synth.speak(utterance);
+            }
+
+            // 安卓设备需要用户手势验证
+            if (/Android/.test(navigator.userAgent)) {
+                if(window.userInteracted) {
+                    playSpeech();
                 } else {
-                    loadVoices();
+                    // 创建隐藏按钮激活音频
+                    const btn = document.createElement('button');
+                    btn.style.display = 'none';
+                    btn.onclick = () => {
+                        playSpeech();
+                        window.userInteracted = true;
+                        document.body.removeChild(btn);
+                    };
+                    document.body.appendChild(btn);
+                    btn.click();
                 }
+            } else {
+                playSpeech();
             }
         }
 
@@ -786,13 +782,11 @@
 
         // 修改按钮点击事件处理函数
         function handleButtonClick(event) {
-            // 防止事件冒泡
+            event.preventDefault();
             event.stopPropagation();
             
-            // 获取按钮的onclick属性
             const onclickAttr = event.currentTarget.getAttribute('onclick');
             if (onclickAttr) {
-                // 执行onclick函数
                 const functionName = onclickAttr.replace('()', '');
                 if (typeof window[functionName] === 'function') {
                     window[functionName]();
@@ -808,15 +802,43 @@
                 weatherInfo.style.visibility = 'visible';
             }
 
-            // 为所有按钮添加点击事件监听器
-            document.querySelectorAll('button').forEach(button => {
-                button.addEventListener('click', handleButtonClick);
-                // 移除原有的onclick属性，改用事件监听器
-                const onclickAttr = button.getAttribute('onclick');
+            // 为所有按钮添加事件监听器
+            document.querySelectorAll('button').forEach(btn => {
+                // 触摸开始事件
+                btn.ontouchstart = function(e) {
+                    e.preventDefault();
+                    this.style.transform = 'scale(0.98)';
+                }
+                
+                // 触摸结束事件
+                btn.ontouchend = function(e) {
+                    e.preventDefault();
+                    this.style.transform = '';
+                    this.click();
+                }
+
+                // 点击事件
+                btn.addEventListener('click', handleButtonClick);
+                
+                // 移除原有的onclick属性
+                const onclickAttr = btn.getAttribute('onclick');
                 if (onclickAttr) {
-                    button.removeAttribute('onclick');
+                    btn.removeAttribute('onclick');
+                }
+
+                // 特别处理返回按钮
+                if(btn.classList.contains('back-btn')) {
+                    btn.onclick = function(e) {
+                        e.preventDefault();
+                        backToMenu();
+                    }
                 }
             });
+
+            // 初始化用户交互状态
+            document.body.addEventListener('click', () => {
+                window.userInteracted = true;
+            }, { once: true });
 
             // 初始化语音
             if (synth.getVoices().length === 0) {
