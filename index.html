@@ -403,7 +403,7 @@
                 </div>
             </div>
             <button class="menu-btn" onclick="saveSettings()">保存设置</button>
-            <button class="menu-btn back-btn" onclick="backToMenu()">← 返回主菜单</button>
+            <button class="menu-btn back-btn" onclick="backToMenu()">← 返回</button>
         </section>
 
         <!-- AI聊天界面 -->
@@ -414,7 +414,7 @@
                 <input type="text" class="chat-input" id="chat-input" placeholder="请输入您的问题...">
                 <button class="send-btn" onclick="sendMessage()">发送</button>
             </div>
-            <button class="menu-btn back-btn" onclick="backToMenu()">← 返回主菜单</button>
+            <button class="menu-btn back-btn" onclick="backToMenu()">← 返回</button>
         </section>
 
         <!-- 医疗信息界面 -->
@@ -438,7 +438,7 @@
                     <p id="display-contact2"></p>
                 </div>
             </div>
-            <button class="menu-btn back-btn" onclick="backToMenu()">← 返回主菜单</button>
+            <button class="menu-btn back-btn" onclick="backToMenu()">← 返回</button>
         </section>
 
         <!-- 社区医生界面 -->
@@ -446,7 +446,7 @@
             <h1>👨‍⚕️ 社区医生</h1>
             <button class="menu-btn" onclick="handleDoctorCall()">拨打电话</button>
             <button class="menu-btn" onclick="showSection('doctor-message')">发送信息</button>
-            <button class="menu-btn back-btn" onclick="backToMenu()">← 返回主菜单</button>
+            <button class="menu-btn back-btn" onclick="backToMenu()">← 返回</button>
         </section>
 
         <!-- 发送信息给医生界面 -->
@@ -583,7 +583,7 @@
                 </div>
                 <button class="menu-btn" onclick="addMedicineReminder()">添加提醒</button>
             </div>
-            <button class="menu-btn back-btn" onclick="backToMenu()">← 返回主菜单</button>
+            <button class="menu-btn back-btn" onclick="backToMenu()">← 返回</button>
         </section>
 
         <!-- 账号管理界面 -->
@@ -605,7 +605,7 @@
                     <p>当前登录状态：<span id="login-status-text">未登录</span></p>
                 </div>
             </div>
-            <button class="menu-btn back-btn" onclick="backToMenu()">← 返回主菜单</button>
+            <button class="menu-btn back-btn" onclick="backToMenu()">← 返回</button>
         </section>
 
         <!-- 家庭相册界面 -->
@@ -624,7 +624,7 @@
             <div id="photo-gallery" class="photo-gallery">
                 <!-- 照片将在这里动态显示 -->
             </div>
-            <button class="menu-btn back-btn" onclick="backToMenu()">← 返回主菜单</button>
+            <button class="menu-btn back-btn" onclick="backToMenu()">← 返回</button>
         </section>
 
         <!-- 明日天气界面 -->
@@ -635,7 +635,7 @@
                     <!-- 明日天气信息将在这里动态显示 -->
                 </div>
             </div>
-            <button class="menu-btn back-btn" onclick="backToMenu()">← 返回主菜单</button>
+            <button class="menu-btn back-btn" onclick="backToMenu()">← 返回</button>
         </section>
     </div>
 
@@ -1258,6 +1258,9 @@
         function uploadPhotos() {
             const input = document.getElementById('photo-upload');
             const files = input.files;
+
+            // 清空input，防止重复上传
+            input.value = '';
 
             for (let file of files) {
                 const reader = new FileReader();
