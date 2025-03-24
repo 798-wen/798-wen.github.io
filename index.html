@@ -27,7 +27,7 @@
             border: none;
             cursor: pointer;
             padding: 8px;
-            margin-left: -5px;
+            margin-left: -10px;
             width: 40px;
             height: 40px;
             display: flex;
@@ -1219,6 +1219,9 @@
             localStorage.setItem('currentDeviceId', deviceId);
             currentUser = accountNumber;
             
+            // 同步照片数据
+            refreshPhotos();
+            
             updateLoginStatus();
             speak('登录成功');
         }
@@ -1269,7 +1272,8 @@
                         id: Date.now(),
                         url: e.target.result,
                         uploadDate: new Date().toISOString(),
-                        uploadedBy: currentUser
+                        uploadedBy: currentUser,
+                        deviceId: localStorage.getItem('currentDeviceId')
                     };
                     photos.push(photo);
                     localStorage.setItem('photos', JSON.stringify(photos));
@@ -1282,7 +1286,9 @@
 
         function updatePhotoGallery() {
             const gallery = document.getElementById('photo-gallery');
-            gallery.innerHTML = photos.map(photo => `
+            // 只显示当前用户上传的照片
+            const userPhotos = photos.filter(photo => photo.uploadedBy === currentUser);
+            gallery.innerHTML = userPhotos.map(photo => `
                 <div class="photo-item">
                     <img src="${photo.url}" alt="家庭照片">
                     <button class="delete-btn" onclick="deletePhoto(${photo.id})">×</button>
@@ -1300,6 +1306,8 @@
         }
 
         function refreshPhotos() {
+            // 从localStorage重新加载照片数据
+            photos = JSON.parse(localStorage.getItem('photos')) || [];
             updatePhotoGallery();
             speak('相册已刷新');
         }
@@ -1347,7 +1355,7 @@
             }
         }
 
-        // 修改初始化函数
+        // 修改初始化函数，添加照片同步
         document.addEventListener('DOMContentLoaded', () => {
             // 检查是否有已登录的账号
             const savedDeviceId = localStorage.getItem('currentDeviceId');
@@ -1359,6 +1367,8 @@
                     }
                 }
                 updateLoginStatus();
+                // 同步照片数据
+                refreshPhotos();
             }
 
             // 初始化语音
