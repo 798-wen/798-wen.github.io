@@ -27,7 +27,12 @@
             border: none;
             cursor: pointer;
             padding: 8px;
-            margin-left: 0px;
+            margin-left: -5px;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         #account-btn {
@@ -291,6 +296,49 @@
             color: #333;
             font-weight: bold;
         }
+
+        .medicine-input-group {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        .medicine-input-group h3 {
+            margin-top: 0;
+            color: #333;
+            font-size: 20px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin: 10px 0;
+        }
+        .button-group .menu-btn {
+            flex: 1;
+        }
+        .photo-item {
+            position: relative;
+            cursor: pointer;
+        }
+        .photo-item .delete-btn {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: rgba(255, 0, 0, 0.7);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        .photo-item:hover .delete-btn {
+            display: flex;
+        }
     </style>
 </head>
 <body>
@@ -417,36 +465,123 @@
         <!-- 用药提醒界面 -->
         <section id="medicine-reminder" class="hidden">
             <h1>💊 用药提醒</h1>
-            <div class="settings-form">
-                <div class="setting-item">
-                    <label>药品名称：</label>
-                    <input type="text" class="settings-input" id="medicine-name" placeholder="请输入药品名称">
-                </div>
-                <div class="setting-item">
-                    <label>服用时间1：</label>
-                    <input type="time" class="settings-input" id="medicine-time1">
-                </div>
-                <div class="setting-item">
-                    <label>服用时间2：</label>
-                    <input type="time" class="settings-input" id="medicine-time2">
-                </div>
-                <div class="setting-item">
-                    <label>服用时间3：</label>
-                    <input type="time" class="settings-input" id="medicine-time3">
-                </div>
-                <div class="setting-item">
-                    <label>服用时间4：</label>
-                    <input type="time" class="settings-input" id="medicine-time4">
-                </div>
-                <div class="setting-item">
-                    <label>服用剂量：</label>
-                    <input type="text" class="settings-input" id="medicine-dose" placeholder="例如：1片">
-                </div>
-                <button class="menu-btn" onclick="addMedicineReminder()">添加提醒</button>
-            </div>
             <div id="medicine-list" class="settings-form">
                 <h2>今日用药提醒</h2>
                 <div id="medicine-reminders-list"></div>
+            </div>
+            <div class="settings-form">
+                <div class="medicine-input-group">
+                    <h3>药品1</h3>
+                    <div class="setting-item">
+                        <label>药品名称：</label>
+                        <input type="text" class="settings-input" id="medicine-name1" placeholder="请输入药品名称">
+                    </div>
+                    <div class="setting-item">
+                        <label>服用时间1：</label>
+                        <input type="time" class="settings-input" id="medicine-time1-1">
+                    </div>
+                    <div class="setting-item">
+                        <label>服用时间2：</label>
+                        <input type="time" class="settings-input" id="medicine-time1-2">
+                    </div>
+                    <div class="setting-item">
+                        <label>服用时间3：</label>
+                        <input type="time" class="settings-input" id="medicine-time1-3">
+                    </div>
+                    <div class="setting-item">
+                        <label>服用时间4：</label>
+                        <input type="time" class="settings-input" id="medicine-time1-4">
+                    </div>
+                    <div class="setting-item">
+                        <label>服用剂量：</label>
+                        <input type="text" class="settings-input" id="medicine-dose1" placeholder="例如：1片">
+                    </div>
+                </div>
+
+                <div class="medicine-input-group">
+                    <h3>药品2</h3>
+                    <div class="setting-item">
+                        <label>药品名称：</label>
+                        <input type="text" class="settings-input" id="medicine-name2" placeholder="请输入药品名称">
+                    </div>
+                    <div class="setting-item">
+                        <label>服用时间1：</label>
+                        <input type="time" class="settings-input" id="medicine-time2-1">
+                    </div>
+                    <div class="setting-item">
+                        <label>服用时间2：</label>
+                        <input type="time" class="settings-input" id="medicine-time2-2">
+                    </div>
+                    <div class="setting-item">
+                        <label>服用时间3：</label>
+                        <input type="time" class="settings-input" id="medicine-time2-3">
+                    </div>
+                    <div class="setting-item">
+                        <label>服用时间4：</label>
+                        <input type="time" class="settings-input" id="medicine-time2-4">
+                    </div>
+                    <div class="setting-item">
+                        <label>服用剂量：</label>
+                        <input type="text" class="settings-input" id="medicine-dose2" placeholder="例如：1片">
+                    </div>
+                </div>
+
+                <div class="medicine-input-group">
+                    <h3>药品3</h3>
+                    <div class="setting-item">
+                        <label>药品名称：</label>
+                        <input type="text" class="settings-input" id="medicine-name3" placeholder="请输入药品名称">
+                    </div>
+                    <div class="setting-item">
+                        <label>服用时间1：</label>
+                        <input type="time" class="settings-input" id="medicine-time3-1">
+                    </div>
+                    <div class="setting-item">
+                        <label>服用时间2：</label>
+                        <input type="time" class="settings-input" id="medicine-time3-2">
+                    </div>
+                    <div class="setting-item">
+                        <label>服用时间3：</label>
+                        <input type="time" class="settings-input" id="medicine-time3-3">
+                    </div>
+                    <div class="setting-item">
+                        <label>服用时间4：</label>
+                        <input type="time" class="settings-input" id="medicine-time3-4">
+                    </div>
+                    <div class="setting-item">
+                        <label>服用剂量：</label>
+                        <input type="text" class="settings-input" id="medicine-dose3" placeholder="例如：1片">
+                    </div>
+                </div>
+
+                <div class="medicine-input-group">
+                    <h3>药品4</h3>
+                    <div class="setting-item">
+                        <label>药品名称：</label>
+                        <input type="text" class="settings-input" id="medicine-name4" placeholder="请输入药品名称">
+                    </div>
+                    <div class="setting-item">
+                        <label>服用时间1：</label>
+                        <input type="time" class="settings-input" id="medicine-time4-1">
+                    </div>
+                    <div class="setting-item">
+                        <label>服用时间2：</label>
+                        <input type="time" class="settings-input" id="medicine-time4-2">
+                    </div>
+                    <div class="setting-item">
+                        <label>服用时间3：</label>
+                        <input type="time" class="settings-input" id="medicine-time4-3">
+                    </div>
+                    <div class="setting-item">
+                        <label>服用时间4：</label>
+                        <input type="time" class="settings-input" id="medicine-time4-4">
+                    </div>
+                    <div class="setting-item">
+                        <label>服用剂量：</label>
+                        <input type="text" class="settings-input" id="medicine-dose4" placeholder="例如：1片">
+                    </div>
+                </div>
+                <button class="menu-btn" onclick="addMedicineReminder()">添加提醒</button>
             </div>
             <button class="menu-btn back-btn" onclick="backToMenu()">← 返回主菜单</button>
         </section>
@@ -481,7 +616,10 @@
                     <label>上传照片：</label>
                     <input type="file" class="settings-input" id="photo-upload" accept="image/*" multiple>
                 </div>
-                <button class="menu-btn" onclick="uploadPhotos()">上传照片</button>
+                <div class="button-group">
+                    <button class="menu-btn" onclick="uploadPhotos()">上传照片</button>
+                    <button class="menu-btn" onclick="refreshPhotos()">刷新相册</button>
+                </div>
             </div>
             <div id="photo-gallery" class="photo-gallery">
                 <!-- 照片将在这里动态显示 -->
@@ -553,29 +691,27 @@
             // 创建新的语音实例
             const utterance = new SpeechSynthesisUtterance(text);
             utterance.lang = 'zh-CN';
-            utterance.rate = 1.0;
-            utterance.pitch = 1.0;
+            utterance.rate = 0.8; // 降低语速
+            utterance.pitch = 0.9; // 降低音调
             utterance.volume = 1.0;
 
             // 针对Safari的特殊处理
             if (navigator.userAgent.includes('Safari') && !navigator.userAgent.includes('Chrome')) {
-                utterance.rate = 0.8; // 降低语速
-                utterance.pitch = 0.9; // 降低音调
-            }
-
-            // 如果有可用的中文语音，使用中文语音
-            if (voices.length === 0) {
-                voices = synth.getVoices();
-            }
-            
-            const chineseVoice = voices.find(voice => 
-                voice.lang.includes('zh') || 
-                voice.lang.includes('cmn') || 
-                voice.name.includes('Chinese')
-            );
-            
-            if (chineseVoice) {
-                utterance.voice = chineseVoice;
+                // 确保在Safari中正确初始化语音
+                if (voices.length === 0) {
+                    voices = synth.getVoices();
+                }
+                
+                // 在Safari中使用特定的语音设置
+                const chineseVoice = voices.find(voice => 
+                    voice.lang.includes('zh') || 
+                    voice.lang.includes('cmn') || 
+                    voice.name.includes('Chinese')
+                );
+                
+                if (chineseVoice) {
+                    utterance.voice = chineseVoice;
+                }
             }
 
             // 播放语音
@@ -880,17 +1016,27 @@
                     const weatherIcon = document.getElementById('weather-icon');
                     if (weatherIcon) {
                         const weatherText = weather.weather.toLowerCase();
+                        let iconUrl = 'https://api.iconify.design/emojione:cloud.svg';
+                        
                         if (weatherText.includes('晴')) {
-                            weatherIcon.src = 'https://api.iconify.design/emojione:sun.svg';
+                            iconUrl = 'https://api.iconify.design/emojione:sun.svg';
                         } else if (weatherText.includes('多云')) {
-                            weatherIcon.src = 'https://api.iconify.design/emojione:partly-sunny.svg';
+                            iconUrl = 'https://api.iconify.design/emojione:partly-sunny.svg';
                         } else if (weatherText.includes('雨')) {
-                            weatherIcon.src = 'https://api.iconify.design/emojione:umbrella-with-rain-drops.svg';
+                            iconUrl = 'https://api.iconify.design/emojione:umbrella-with-rain-drops.svg';
                         } else if (weatherText.includes('雪')) {
-                            weatherIcon.src = 'https://api.iconify.design/emojione:snowflake.svg';
-                        } else {
-                            weatherIcon.src = 'https://api.iconify.design/emojione:cloud.svg';
+                            iconUrl = 'https://api.iconify.design/emojione:snowflake.svg';
                         }
+                        
+                        // 针对Safari的特殊处理
+                        if (navigator.userAgent.includes('Safari') && !navigator.userAgent.includes('Chrome')) {
+                            weatherIcon.onload = function() {
+                                this.style.display = 'inline-block';
+                            };
+                            weatherIcon.style.display = 'none';
+                        }
+                        
+                        weatherIcon.src = iconUrl;
                     }
                 }
             } catch (error) {
@@ -900,29 +1046,80 @@
 
         // 用药提醒相关函数
         function addMedicineReminder() {
-            const name = document.getElementById('medicine-name').value.trim();
-            const times = [
-                document.getElementById('medicine-time1').value,
-                document.getElementById('medicine-time2').value,
-                document.getElementById('medicine-time3').value,
-                document.getElementById('medicine-time4').value
+            const name1 = document.getElementById('medicine-name1').value.trim();
+            const times1 = [
+                document.getElementById('medicine-time1-1').value,
+                document.getElementById('medicine-time1-2').value,
+                document.getElementById('medicine-time1-3').value,
+                document.getElementById('medicine-time1-4').value
             ].filter(time => time); // 过滤掉空值
-            const dose = document.getElementById('medicine-dose').value.trim();
+            const dose1 = document.getElementById('medicine-dose1').value.trim();
 
-            if (!name || times.length === 0 || !dose) {
+            const name2 = document.getElementById('medicine-name2').value.trim();
+            const times2 = [
+                document.getElementById('medicine-time2-1').value,
+                document.getElementById('medicine-time2-2').value,
+                document.getElementById('medicine-time2-3').value,
+                document.getElementById('medicine-time2-4').value
+            ].filter(time => time); // 过滤掉空值
+            const dose2 = document.getElementById('medicine-dose2').value.trim();
+
+            const name3 = document.getElementById('medicine-name3').value.trim();
+            const times3 = [
+                document.getElementById('medicine-time3-1').value,
+                document.getElementById('medicine-time3-2').value,
+                document.getElementById('medicine-time3-3').value,
+                document.getElementById('medicine-time3-4').value
+            ].filter(time => time); // 过滤掉空值
+            const dose3 = document.getElementById('medicine-dose3').value.trim();
+
+            const name4 = document.getElementById('medicine-name4').value.trim();
+            const times4 = [
+                document.getElementById('medicine-time4-1').value,
+                document.getElementById('medicine-time4-2').value,
+                document.getElementById('medicine-time4-3').value,
+                document.getElementById('medicine-time4-4').value
+            ].filter(time => time); // 过滤掉空值
+            const dose4 = document.getElementById('medicine-dose4').value.trim();
+
+            if (!name1 || times1.length === 0 || !dose1) {
                 alert('请填写完整的用药信息');
                 return;
             }
 
-            const reminder = {
+            const reminder1 = {
                 id: Date.now(),
-                name,
-                times,
-                dose,
+                name: name1,
+                times: times1,
+                dose: dose1,
                 date: new Date().toISOString().split('T')[0]
             };
 
-            medicineReminders.push(reminder);
+            const reminder2 = {
+                id: Date.now(),
+                name: name2,
+                times: times2,
+                dose: dose2,
+                date: new Date().toISOString().split('T')[0]
+            };
+
+            const reminder3 = {
+                id: Date.now(),
+                name: name3,
+                times: times3,
+                dose: dose3,
+                date: new Date().toISOString().split('T')[0]
+            };
+
+            const reminder4 = {
+                id: Date.now(),
+                name: name4,
+                times: times4,
+                dose: dose4,
+                date: new Date().toISOString().split('T')[0]
+            };
+
+            medicineReminders.push(reminder1, reminder2, reminder3, reminder4);
             localStorage.setItem('medicineReminders', JSON.stringify(medicineReminders));
             updateMedicineList();
             speak('已添加用药提醒，祝您早日康复');
@@ -1069,11 +1266,12 @@
                         id: Date.now(),
                         url: e.target.result,
                         uploadDate: new Date().toISOString(),
-                        uploadedBy: currentUser || 'main'
+                        uploadedBy: currentUser
                     };
                     photos.push(photo);
                     localStorage.setItem('photos', JSON.stringify(photos));
                     updatePhotoGallery();
+                    speak('照片上传成功');
                 };
                 reader.readAsDataURL(file);
             }
@@ -1084,8 +1282,23 @@
             gallery.innerHTML = photos.map(photo => `
                 <div class="photo-item">
                     <img src="${photo.url}" alt="家庭照片">
+                    <button class="delete-btn" onclick="deletePhoto(${photo.id})">×</button>
                 </div>
             `).join('');
+        }
+
+        function deletePhoto(id) {
+            if (confirm('确定要删除这张照片吗？')) {
+                photos = photos.filter(photo => photo.id !== id);
+                localStorage.setItem('photos', JSON.stringify(photos));
+                updatePhotoGallery();
+                speak('照片已删除');
+            }
+        }
+
+        function refreshPhotos() {
+            updatePhotoGallery();
+            speak('相册已刷新');
         }
 
         // 明日天气相关函数
@@ -1131,7 +1344,7 @@
             }
         }
 
-        // 修改初始化函数，添加账号持久化检查
+        // 修改初始化函数
         document.addEventListener('DOMContentLoaded', () => {
             // 检查是否有已登录的账号
             const savedDeviceId = localStorage.getItem('currentDeviceId');
@@ -1159,6 +1372,16 @@
             // 初始化页面
             updateDateTime();
             getWeather();
+            
+            // 针对Safari的特殊处理
+            if (navigator.userAgent.includes('Safari') && !navigator.userAgent.includes('Chrome')) {
+                // 确保在Safari中正确显示天气和时间
+                setTimeout(() => {
+                    updateDateTime();
+                    getWeather();
+                }, 1000);
+            }
+            
             setInterval(updateDateTime, 1000);
             setInterval(getWeather, 1800000);
         });
