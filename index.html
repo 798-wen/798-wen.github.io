@@ -27,7 +27,7 @@
             border: none;
             cursor: pointer;
             padding: 8px;
-            margin-left: 5px;
+            margin-left: 0px;
         }
 
         #account-btn {
@@ -151,12 +151,12 @@
         }
 
         .weather-info {
-            text-align: left;
+            text-align: center;
             padding: 8px 15px;
             margin-bottom: 10px;
             display: flex;
             align-items: center;
-            justify-content: space-between;
+            justify-content: center;
             width: 100%;
             position: fixed;
             top: 0;
@@ -170,6 +170,8 @@
         .weather-container {
             display: flex;
             flex-direction: column;
+            align-items: center;
+            flex: 1;
         }
 
         #date-time {
@@ -314,9 +316,9 @@
             <button class="menu-btn" onclick="handlePropertyCall()">物业联系</button>
             <button class="menu-btn" onclick="showSection('ai-chat')">万能问答</button>
             <button class="menu-btn" onclick="showSection('tomorrow-weather')">明日天气</button>
-            <button class="menu-btn" onclick="showSection('medical')">我的基础病</button>
             <button class="menu-btn" onclick="showSection('medicine-reminder')">用药提醒</button>
             <button class="menu-btn" onclick="showSection('family-album')">家庭相册</button>
+            <button class="menu-btn" onclick="showSection('medical')">我的基础病</button>
         </section>
 
         <!-- 设置界面 -->
@@ -461,7 +463,9 @@
                     <label>密码：</label>
                     <input type="password" class="settings-input" id="account-password" placeholder="请输入密码">
                 </div>
-                <button class="menu-btn" onclick="saveAccount()">保存账号</button>
+                <button class="menu-btn" onclick="registerAccount()">注册账号</button>
+                <button class="menu-btn" onclick="loginAccount()">登录账号</button>
+                <button class="menu-btn" onclick="logoutAccount()">退出账号</button>
                 <div id="login-status" class="setting-item">
                     <p>当前登录状态：<span id="login-status-text">未登录</span></p>
                 </div>
@@ -921,7 +925,7 @@
             medicineReminders.push(reminder);
             localStorage.setItem('medicineReminders', JSON.stringify(medicineReminders));
             updateMedicineList();
-            speak('已添加用药提醒');
+            speak('已添加用药提醒，祝您早日康复');
         }
 
         function updateMedicineList() {
@@ -948,7 +952,7 @@
         }
 
         // 账号管理相关函数
-        function saveAccount() {
+        function registerAccount() {
             const accountNumber = document.getElementById('account-number').value.trim();
             const password = document.getElementById('account-password').value;
 
@@ -962,11 +966,16 @@
                 return;
             }
 
+            // 检查账号是否已存在
+            if (accounts[accountNumber]) {
+                alert('该账号已被注册');
+                return;
+            }
+
             // 生成设备ID
             const deviceId = generateDeviceId();
             
-            accounts = {
-                number: accountNumber,
+            accounts[accountNumber] = {
                 password: password,
                 devices: [deviceId]
             };
@@ -976,7 +985,63 @@
             currentUser = accountNumber;
             
             updateLoginStatus();
-            speak('账号信息已保存');
+            speak('账号注册成功');
+        }
+
+        function loginAccount() {
+            const accountNumber = document.getElementById('account-number').value.trim();
+            const password = document.getElementById('account-password').value;
+
+            if (!accountNumber || !password) {
+                alert('请填写完整的账号信息');
+                return;
+            }
+
+            if (!accounts[accountNumber]) {
+                alert('账号不存在，请先注册');
+                return;
+            }
+
+            if (accounts[accountNumber].password !== password) {
+                alert('密码错误');
+                return;
+            }
+
+            // 生成设备ID
+            const deviceId = generateDeviceId();
+            
+            // 检查设备数量
+            if (accounts[accountNumber].devices.length >= 3) {
+                alert('已达到最大设备数量限制');
+                return;
+            }
+
+            // 添加新设备
+            accounts[accountNumber].devices.push(deviceId);
+            localStorage.setItem('accounts', JSON.stringify(accounts));
+            localStorage.setItem('currentDeviceId', deviceId);
+            currentUser = accountNumber;
+            
+            updateLoginStatus();
+            speak('登录成功');
+        }
+
+        function logoutAccount() {
+            if (!currentUser) {
+                alert('当前未登录');
+                return;
+            }
+
+            const deviceId = localStorage.getItem('currentDeviceId');
+            if (deviceId && accounts[currentUser]) {
+                accounts[currentUser].devices = accounts[currentUser].devices.filter(id => id !== deviceId);
+                localStorage.setItem('accounts', JSON.stringify(accounts));
+            }
+
+            localStorage.removeItem('currentDeviceId');
+            currentUser = null;
+            updateLoginStatus();
+            speak('已退出登录');
         }
 
         function generateDeviceId() {
@@ -1066,8 +1131,20 @@
             }
         }
 
-        // 修改初始化函数
+        // 修改初始化函数，添加账号持久化检查
         document.addEventListener('DOMContentLoaded', () => {
+            // 检查是否有已登录的账号
+            const savedDeviceId = localStorage.getItem('currentDeviceId');
+            if (savedDeviceId) {
+                for (const [accountNumber, accountInfo] of Object.entries(accounts)) {
+                    if (accountInfo.devices.includes(savedDeviceId)) {
+                        currentUser = accountNumber;
+                        break;
+                    }
+                }
+                updateLoginStatus();
+            }
+
             // 初始化语音
             if (synth.getVoices().length === 0) {
                 synth.addEventListener('voiceschanged', () => {
