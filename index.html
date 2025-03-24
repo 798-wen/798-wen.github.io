@@ -27,7 +27,17 @@
             border: none;
             cursor: pointer;
             padding: 8px;
-            margin-left: 10px;
+            margin-left: 5px;
+        }
+
+        #account-btn {
+            position: static;
+            font-size: 24px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 8px;
+            margin-right: 5px;
         }
 
         .menu-btn {
@@ -285,6 +295,7 @@
     <div class="container">
         <!-- 天气信息 -->
         <div class="weather-info" id="weather-info">
+            <button id="account-btn" onclick="showSection('account')">👤</button>
             <div class="weather-container">
                 <span id="date-time"></span>
                 <div id="weather">
@@ -302,11 +313,10 @@
             <button class="menu-btn" onclick="showSection('doctor')">社区医生</button>
             <button class="menu-btn" onclick="handlePropertyCall()">物业联系</button>
             <button class="menu-btn" onclick="showSection('ai-chat')">万能问答</button>
+            <button class="menu-btn" onclick="showSection('tomorrow-weather')">明日天气</button>
             <button class="menu-btn" onclick="showSection('medical')">我的基础病</button>
             <button class="menu-btn" onclick="showSection('medicine-reminder')">用药提醒</button>
-            <button class="menu-btn" onclick="showSection('account')">账号管理</button>
             <button class="menu-btn" onclick="showSection('family-album')">家庭相册</button>
-            <button class="menu-btn" onclick="showSection('tomorrow-weather')">明日天气</button>
         </section>
 
         <!-- 设置界面 -->
@@ -411,8 +421,20 @@
                     <input type="text" class="settings-input" id="medicine-name" placeholder="请输入药品名称">
                 </div>
                 <div class="setting-item">
-                    <label>服用时间：</label>
-                    <input type="time" class="settings-input" id="medicine-time">
+                    <label>服用时间1：</label>
+                    <input type="time" class="settings-input" id="medicine-time1">
+                </div>
+                <div class="setting-item">
+                    <label>服用时间2：</label>
+                    <input type="time" class="settings-input" id="medicine-time2">
+                </div>
+                <div class="setting-item">
+                    <label>服用时间3：</label>
+                    <input type="time" class="settings-input" id="medicine-time3">
+                </div>
+                <div class="setting-item">
+                    <label>服用时间4：</label>
+                    <input type="time" class="settings-input" id="medicine-time4">
                 </div>
                 <div class="setting-item">
                     <label>服用剂量：</label>
@@ -432,22 +454,17 @@
             <h1>👤 账号管理</h1>
             <div class="settings-form">
                 <div class="setting-item">
-                    <label>主账号：</label>
-                    <input type="text" class="settings-input" id="main-account" placeholder="请输入主账号">
+                    <label>账号（仅限数字）：</label>
+                    <input type="text" class="settings-input" id="account-number" placeholder="请输入数字账号" pattern="[0-9]*">
                 </div>
                 <div class="setting-item">
                     <label>密码：</label>
-                    <input type="password" class="settings-input" id="main-password" placeholder="请输入密码">
-                </div>
-                <div class="setting-item">
-                    <label>子账号：</label>
-                    <input type="text" class="settings-input" id="sub-account" placeholder="请输入子账号">
-                </div>
-                <div class="setting-item">
-                    <label>子账号密码：</label>
-                    <input type="password" class="settings-input" id="sub-password" placeholder="请输入子账号密码">
+                    <input type="password" class="settings-input" id="account-password" placeholder="请输入密码">
                 </div>
                 <button class="menu-btn" onclick="saveAccount()">保存账号</button>
+                <div id="login-status" class="setting-item">
+                    <p>当前登录状态：<span id="login-status-text">未登录</span></p>
+                </div>
             </div>
             <button class="menu-btn back-btn" onclick="backToMenu()">← 返回主菜单</button>
         </section>
@@ -535,6 +552,12 @@
             utterance.rate = 1.0;
             utterance.pitch = 1.0;
             utterance.volume = 1.0;
+
+            // 针对Safari的特殊处理
+            if (navigator.userAgent.includes('Safari') && !navigator.userAgent.includes('Chrome')) {
+                utterance.rate = 0.8; // 降低语速
+                utterance.pitch = 0.9; // 降低音调
+            }
 
             // 如果有可用的中文语音，使用中文语音
             if (voices.length === 0) {
@@ -624,6 +647,13 @@
             
             const targetSection = document.getElementById(sectionId);
             if (targetSection) {
+                // 检查是否需要登录
+                if (sectionId === 'family-album' && !currentUser) {
+                    alert('请先登录账号');
+                    showSection('account');
+                    return;
+                }
+                
                 targetSection.classList.remove('hidden');
                 
                 // 根据不同的section执行相应的初始化
@@ -641,6 +671,7 @@
                         speak('明日天气');
                         break;
                     case 'account':
+                        updateLoginStatus();
                         speak('账号管理');
                         break;
                 }
@@ -866,10 +897,15 @@
         // 用药提醒相关函数
         function addMedicineReminder() {
             const name = document.getElementById('medicine-name').value.trim();
-            const time = document.getElementById('medicine-time').value;
+            const times = [
+                document.getElementById('medicine-time1').value,
+                document.getElementById('medicine-time2').value,
+                document.getElementById('medicine-time3').value,
+                document.getElementById('medicine-time4').value
+            ].filter(time => time); // 过滤掉空值
             const dose = document.getElementById('medicine-dose').value.trim();
 
-            if (!name || !time || !dose) {
+            if (!name || times.length === 0 || !dose) {
                 alert('请填写完整的用药信息');
                 return;
             }
@@ -877,7 +913,7 @@
             const reminder = {
                 id: Date.now(),
                 name,
-                time,
+                times,
                 dose,
                 date: new Date().toISOString().split('T')[0]
             };
@@ -897,8 +933,7 @@
                 <div class="medicine-reminder-item">
                     <div>
                         <strong>${reminder.name}</strong><br>
-                        时间：${reminder.time}<br>
-                        剂量：${reminder.dose}
+                        时间：${reminder.times.join('、')}
                     </div>
                     <button onclick="deleteMedicineReminder(${reminder.id})">删除</button>
                 </div>
@@ -914,23 +949,47 @@
 
         // 账号管理相关函数
         function saveAccount() {
-            const mainAccount = document.getElementById('main-account').value.trim();
-            const mainPassword = document.getElementById('main-password').value;
-            const subAccount = document.getElementById('sub-account').value.trim();
-            const subPassword = document.getElementById('sub-password').value;
+            const accountNumber = document.getElementById('account-number').value.trim();
+            const password = document.getElementById('account-password').value;
 
-            if (!mainAccount || !mainPassword) {
-                alert('请填写主账号信息');
+            if (!accountNumber || !password) {
+                alert('请填写完整的账号信息');
                 return;
             }
 
+            if (!/^\d+$/.test(accountNumber)) {
+                alert('账号必须是数字');
+                return;
+            }
+
+            // 生成设备ID
+            const deviceId = generateDeviceId();
+            
             accounts = {
-                main: { username: mainAccount, password: mainPassword },
-                sub: subAccount && subPassword ? { username: subAccount, password: subPassword } : null
+                number: accountNumber,
+                password: password,
+                devices: [deviceId]
             };
 
             localStorage.setItem('accounts', JSON.stringify(accounts));
+            localStorage.setItem('currentDeviceId', deviceId);
+            currentUser = accountNumber;
+            
+            updateLoginStatus();
             speak('账号信息已保存');
+        }
+
+        function generateDeviceId() {
+            return 'device_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        }
+
+        function updateLoginStatus() {
+            const statusText = document.getElementById('login-status-text');
+            if (currentUser) {
+                statusText.textContent = `已登录 (账号: ${currentUser})`;
+            } else {
+                statusText.textContent = '未登录';
+            }
         }
 
         // 家庭相册相关函数
@@ -1031,14 +1090,28 @@
         function initializeWelcome() {
             const today = new Date().toISOString().split('T')[0];
             const todayReminders = medicineReminders.filter(r => r.date === today);
+            const now = new Date();
+            const currentHour = now.getHours();
+            const currentMinute = now.getMinutes();
             
             let welcomeText = '您好，我是您的智能助手，请点击按钮使用各项功能';
             
             if (todayReminders.length > 0) {
-                const reminderText = todayReminders.map(r => 
-                    `${r.name}，服用时间${r.time}，剂量${r.dose}`
-                ).join('。');
-                welcomeText += `。今天您需要${reminderText}`;
+                const upcomingReminders = todayReminders.map(reminder => {
+                    const upcomingTimes = reminder.times.filter(time => {
+                        const [hours, minutes] = time.split(':').map(Number);
+                        return hours > currentHour || (hours === currentHour && minutes > currentMinute);
+                    });
+                    
+                    if (upcomingTimes.length > 0) {
+                        return `您还需要在${upcomingTimes.join('、')}服用${reminder.name}，剂量${reminder.dose}`;
+                    }
+                    return null;
+                }).filter(text => text);
+                
+                if (upcomingReminders.length > 0) {
+                    welcomeText += '。' + upcomingReminders.join('。');
+                }
             }
             
             speak(welcomeText);
