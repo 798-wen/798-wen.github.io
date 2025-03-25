@@ -18,6 +18,9 @@
             background: #F8F9FA;
             margin: 0;
             padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
         }
 
         #settings-btn {
@@ -27,7 +30,7 @@
             border: none;
             cursor: pointer;
             padding: 8px;
-            margin-left: -10px;
+            margin-left: 20px;
             width: 40px;
             height: 40px;
             display: flex;
@@ -70,10 +73,15 @@
         }
 
         .container {
-            max-width: 600px;
+            max-width: 800px;
+            width: 100%;
             margin: 0 auto;
             padding: 20px;
             padding-top: 60px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            flex: 1;
         }
 
         .hidden {
@@ -82,9 +90,10 @@
 
         .settings-form {
             background: white;
-            padding: 20px;
+            padding: 30px;
             border-radius: 15px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin: 20px 0;
         }
 
         .settings-input {
@@ -107,36 +116,42 @@
 
         .chat-container {
             background: white;
-            padding: 20px;
+            padding: 30px;
             border-radius: 15px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             margin: 20px 0;
+            height: 500px;
+            display: flex;
+            flex-direction: column;
         }
 
         .chat-messages {
-            height: 300px;
+            flex: 1;
             overflow-y: auto;
-            padding: 10px;
+            padding: 20px;
             border: 1px solid #ddd;
             border-radius: 8px;
-            margin-bottom: 10px;
+            margin-bottom: 20px;
+            background: #f8f9fa;
         }
 
         .message {
-            margin: 10px 0;
-            padding: 10px;
-            border-radius: 8px;
+            margin: 15px 0;
+            padding: 15px;
+            border-radius: 12px;
             font-size: 28px;
+            max-width: 80%;
+            word-wrap: break-word;
         }
 
         .user-message {
             background: #E3F2FD;
-            margin-left: 20%;
+            margin-left: auto;
         }
 
         .ai-message {
             background: #F5F5F5;
-            margin-right: 20%;
+            margin-right: auto;
             line-height: 1.5;
         }
 
@@ -241,21 +256,28 @@
 
         .medicine-reminder-item {
             background: #f8f9fa;
-            padding: 15px;
-            margin: 10px 0;
-            border-radius: 8px;
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 12px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
 
         .medicine-reminder-item button {
             background: #e74c3c;
             color: white;
             border: none;
-            padding: 5px 10px;
-            border-radius: 4px;
+            padding: 8px 16px;
+            border-radius: 6px;
             cursor: pointer;
+            font-size: 16px;
+            transition: background 0.3s;
+        }
+
+        .medicine-reminder-item button:hover {
+            background: #c0392b;
         }
 
         .weather-card {
@@ -1044,7 +1066,7 @@
             }
         }
 
-        // 用药提醒相关函数
+        // 修改用药提醒相关函数
         function addMedicineReminder() {
             const name1 = document.getElementById('medicine-name1').value.trim();
             const times1 = [
@@ -1052,7 +1074,7 @@
                 document.getElementById('medicine-time1-2').value,
                 document.getElementById('medicine-time1-3').value,
                 document.getElementById('medicine-time1-4').value
-            ].filter(time => time); // 过滤掉空值
+            ].filter(time => time);
             const dose1 = document.getElementById('medicine-dose1').value.trim();
 
             const name2 = document.getElementById('medicine-name2').value.trim();
@@ -1061,7 +1083,7 @@
                 document.getElementById('medicine-time2-2').value,
                 document.getElementById('medicine-time2-3').value,
                 document.getElementById('medicine-time2-4').value
-            ].filter(time => time); // 过滤掉空值
+            ].filter(time => time);
             const dose2 = document.getElementById('medicine-dose2').value.trim();
 
             const name3 = document.getElementById('medicine-name3').value.trim();
@@ -1070,7 +1092,7 @@
                 document.getElementById('medicine-time3-2').value,
                 document.getElementById('medicine-time3-3').value,
                 document.getElementById('medicine-time3-4').value
-            ].filter(time => time); // 过滤掉空值
+            ].filter(time => time);
             const dose3 = document.getElementById('medicine-dose3').value.trim();
 
             const name4 = document.getElementById('medicine-name4').value.trim();
@@ -1079,7 +1101,7 @@
                 document.getElementById('medicine-time4-2').value,
                 document.getElementById('medicine-time4-3').value,
                 document.getElementById('medicine-time4-4').value
-            ].filter(time => time); // 过滤掉空值
+            ].filter(time => time);
             const dose4 = document.getElementById('medicine-dose4').value.trim();
 
             if (!name1 || times1.length === 0 || !dose1) {
@@ -1087,42 +1109,88 @@
                 return;
             }
 
-            const reminder1 = {
-                id: Date.now(),
-                name: name1,
-                times: times1,
-                dose: dose1,
-                date: new Date().toISOString().split('T')[0]
-            };
+            // 创建用药提醒对象
+            const reminders = [];
+            if (name1 && times1.length > 0 && dose1) {
+                reminders.push({
+                    id: Date.now(),
+                    name: name1,
+                    times: times1,
+                    dose: dose1,
+                    date: new Date().toISOString().split('T')[0],
+                    userId: currentUser
+                });
+            }
+            if (name2 && times2.length > 0 && dose2) {
+                reminders.push({
+                    id: Date.now() + 1,
+                    name: name2,
+                    times: times2,
+                    dose: dose2,
+                    date: new Date().toISOString().split('T')[0],
+                    userId: currentUser
+                });
+            }
+            if (name3 && times3.length > 0 && dose3) {
+                reminders.push({
+                    id: Date.now() + 2,
+                    name: name3,
+                    times: times3,
+                    dose: dose3,
+                    date: new Date().toISOString().split('T')[0],
+                    userId: currentUser
+                });
+            }
+            if (name4 && times4.length > 0 && dose4) {
+                reminders.push({
+                    id: Date.now() + 3,
+                    name: name4,
+                    times: times4,
+                    dose: dose4,
+                    date: new Date().toISOString().split('T')[0],
+                    userId: currentUser
+                });
+            }
 
-            const reminder2 = {
-                id: Date.now(),
-                name: name2,
-                times: times2,
-                dose: dose2,
-                date: new Date().toISOString().split('T')[0]
-            };
+            // 获取现有提醒
+            const existingReminders = JSON.parse(localStorage.getItem('medicineReminders')) || [];
+            
+            // 更新或添加新的提醒
+            reminders.forEach(newReminder => {
+                const existingIndex = existingReminders.findIndex(r => 
+                    r.name === newReminder.name && 
+                    r.userId === currentUser
+                );
+                
+                if (existingIndex !== -1) {
+                    // 更新现有提醒
+                    existingReminders[existingIndex] = {
+                        ...existingReminders[existingIndex],
+                        times: newReminder.times,
+                        dose: newReminder.dose
+                    };
+                } else {
+                    // 添加新提醒
+                    existingReminders.push(newReminder);
+                }
+            });
 
-            const reminder3 = {
-                id: Date.now(),
-                name: name3,
-                times: times3,
-                dose: dose3,
-                date: new Date().toISOString().split('T')[0]
-            };
-
-            const reminder4 = {
-                id: Date.now(),
-                name: name4,
-                times: times4,
-                dose: dose4,
-                date: new Date().toISOString().split('T')[0]
-            };
-
-            medicineReminders.push(reminder1, reminder2, reminder3, reminder4);
-            localStorage.setItem('medicineReminders', JSON.stringify(medicineReminders));
+            // 保存到localStorage
+            localStorage.setItem('medicineReminders', JSON.stringify(existingReminders));
+            medicineReminders = existingReminders;
+            
             updateMedicineList();
-            speak('已添加用药提醒，祝您早日康复');
+            speak('已保存用药提醒');
+            
+            // 清空输入框
+            ['1', '2', '3', '4'].forEach(num => {
+                document.getElementById(`medicine-name${num}`).value = '';
+                document.getElementById(`medicine-time${num}-1`).value = '';
+                document.getElementById(`medicine-time${num}-2`).value = '';
+                document.getElementById(`medicine-time${num}-3`).value = '';
+                document.getElementById(`medicine-time${num}-4`).value = '';
+                document.getElementById(`medicine-dose${num}`).value = '';
+            });
         }
 
         function updateMedicineList() {
@@ -1148,7 +1216,7 @@
             speak('已删除用药提醒');
         }
 
-        // 账号管理相关函数
+        // 修改账号注册函数
         async function registerAccount() {
             const accountNumber = document.getElementById('account-number').value.trim();
             const password = document.getElementById('account-password').value;
@@ -1163,32 +1231,92 @@
                 return;
             }
 
-            // 检查账号是否已存在
-            if (accounts[accountNumber]) {
-                alert('该账号已被注册');
-                return;
+            try {
+                // 检查账号是否已存在（从GitHub获取）
+                const response = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/accounts.json`);
+                if (response.ok) {
+                    const data = await response.json();
+                    const accountsContent = JSON.parse(atob(data.content));
+                    if (accountsContent[accountNumber]) {
+                        alert('该账号已被注册');
+                        return;
+                    }
+                }
+
+                // 密码加密
+                const hashedPassword = await hashPassword(password);
+                
+                // 生成设备ID
+                const deviceId = generateDeviceId();
+                
+                // 创建新账号
+                const newAccount = {
+                    password: hashedPassword,
+                    devices: [deviceId],
+                    createdAt: new Date().toISOString()
+                };
+
+                // 更新GitHub上的账号数据
+                const accountsContent = await getGitHubAccounts();
+                accountsContent[accountNumber] = newAccount;
+                
+                await updateGitHubAccounts(accountsContent);
+
+                // 更新本地存储
+                accounts[accountNumber] = newAccount;
+                localStorage.setItem('accounts', JSON.stringify(accounts));
+                localStorage.setItem('currentDeviceId', deviceId);
+                currentUser = accountNumber;
+                
+                updateLoginStatus();
+                speak('账号注册成功');
+            } catch (error) {
+                console.error('注册失败:', error);
+                alert('注册失败，请稍后重试');
             }
-
-            // 密码加密
-            const hashedPassword = await hashPassword(password);
-            
-            // 生成设备ID
-            const deviceId = generateDeviceId();
-            
-            accounts[accountNumber] = {
-                password: hashedPassword,
-                devices: [deviceId],
-                createdAt: new Date().toISOString()
-            };
-
-            localStorage.setItem('accounts', JSON.stringify(accounts));
-            localStorage.setItem('currentDeviceId', deviceId);
-            currentUser = accountNumber;
-            
-            updateLoginStatus();
-            speak('账号注册成功');
         }
 
+        // 获取GitHub上的账号数据
+        async function getGitHubAccounts() {
+            try {
+                const response = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/accounts.json`);
+                if (response.ok) {
+                    const data = await response.json();
+                    return JSON.parse(atob(data.content));
+                }
+                return {};
+            } catch (error) {
+                console.error('获取账号数据失败:', error);
+                return {};
+            }
+        }
+
+        // 更新GitHub上的账号数据
+        async function updateGitHubAccounts(accountsContent) {
+            try {
+                const response = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/accounts.json`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `token ${GITHUB_TOKEN}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        message: 'Update accounts data',
+                        content: btoa(JSON.stringify(accountsContent, null, 2)),
+                        branch: GITHUB_BRANCH
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('更新账号数据失败');
+                }
+            } catch (error) {
+                console.error('更新账号数据失败:', error);
+                throw error;
+            }
+        }
+
+        // 账号管理相关函数
         async function loginAccount() {
             const accountNumber = document.getElementById('account-number').value.trim();
             const password = document.getElementById('account-password').value;
