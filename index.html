@@ -397,6 +397,86 @@
         .taxi-location-btn:hover {
             background: #2980B9;
         }
+
+        .consultation-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .consultation-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            background: #f5f5f5;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .consultation-btn:hover {
+            background: #e0e0e0;
+            transform: translateY(-2px);
+        }
+
+        .consultation-icon {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+
+        .consultation-name {
+            font-size: 14px;
+            color: #333;
+        }
+
+        .dialog {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .dialog-content {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 400px;
+            transform: translateY(20px);
+            transition: transform 0.3s ease;
+        }
+
+        .dialog-content h3 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .cancel-btn {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            background: #f0f0f0;
+            color: #666;
+            cursor: pointer;
+            margin-top: 15px;
+        }
+
+        .cancel-btn:hover {
+            background: #e0e0e0;
+        }
     </style>
 </head>
 <body>
@@ -462,8 +542,8 @@
                     <input type="text" class="settings-input" id="set-allergies" placeholder="例如：青霉素">
                 </div>
                 <div class="setting-item">
-                    <label>常用打车点（用逗号分隔）：</label>
-                    <input type="text" class="settings-input" id="set-taxi-locations" placeholder="例如：医院,超市,公园">
+                    <label>常用上车点（用逗号分隔）：</label>
+                    <input type="text" class="settings-input" id="set-taxi-locations" placeholder="例如：家,医院,超市">
                 </div>
             </div>
             <button class="menu-btn" onclick="saveSettings()">保存设置</button>
@@ -841,7 +921,7 @@
             };
             localStorage.setItem('medicalInfo', JSON.stringify(medicalInfo));
 
-            // 保存常用打车点
+            // 保存常用上车点
             taxiLocations = document.getElementById('set-taxi-locations').value.split(',').map(s => s.trim());
             localStorage.setItem('taxiLocations', JSON.stringify(taxiLocations));
             
@@ -1699,6 +1779,10 @@
 
         // 处理一键问诊
         function handleQuickDiagnosis() {
+            const consultationOptions = [
+                {
+                    name: '在线问诊',
+                    icon: '👨‍⚕️',
             speak('一键问诊');
             // 创建问诊选项弹窗
             const options = [
@@ -1737,7 +1821,7 @@
         function handleQuickTaxi() {
             speak('一键打车');
             if (taxiLocations.length === 0) {
-                alert('请先在设置中添加常用打车点');
+                alert('请先在设置中添加常用上车点');
                 showSection('settings');
                 return;
             }
@@ -1759,7 +1843,7 @@
             `;
             
             dialog.innerHTML = `
-                <h2 style="margin-bottom: 20px; font-size: 24px;">选择目的地</h2>
+                <h2 style="margin-bottom: 20px; font-size: 24px;">选择上车点</h2>
                 <div class="taxi-locations">
                     ${taxiLocations.map(location => `
                         <button class="taxi-location-btn" onclick="openDidiTaxi('${location}')">
@@ -1774,10 +1858,32 @@
         }
 
         // 打开滴滴打车
-        function openDidiTaxi(destination) {
-            // 使用滴滴打车网页版
-            const url = `https://www.didiglobal.com/order?destination=${encodeURIComponent(destination)}`;
-            window.open(url, '_blank');
+        function openDidiTaxi(pickupLocation) {
+            // 检查是否在微信环境中
+            if (isWeixinBrowser()) {
+                // 在微信中打开滴滴小程序
+                wx.miniProgram.navigateTo({
+                    url: `/pages/index/index?pickup=${encodeURIComponent(pickupLocation)}`,
+                    success: function() {
+                        console.log('成功打开滴滴小程序');
+                    },
+                    fail: function(err) {
+                        console.error('打开滴滴小程序失败:', err);
+                        alert('打开滴滴小程序失败，请确保已安装滴滴出行小程序');
+                    }
+                });
+            } else {
+                // 在其他浏览器中打开网页版
+                const url = `https://www.didiglobal.com/order?pickup=${encodeURIComponent(pickupLocation)}`;
+                window.open(url, '_blank');
+            }
+            // 移除对话框
+            document.querySelector('.dialog').remove();
+        }
+
+        // 添加微信环境检测函数
+        function isWeixinBrowser() {
+            return /micromessenger/i.test(navigator.userAgent);
         }
     </script>
 </body>
