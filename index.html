@@ -361,6 +361,42 @@
         .photo-item:hover .delete-btn {
             display: flex;
         }
+
+        .weather-icon {
+            width: 32px;
+            height: 32px;
+            margin-right: 8px;
+        }
+
+        .weather-icon-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        /* 新增样式 */
+        .taxi-locations {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 10px 0;
+        }
+
+        .taxi-location-btn {
+            background: #3498DB;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.3s;
+        }
+
+        .taxi-location-btn:hover {
+            background: #2980B9;
+        }
     </style>
 </head>
 <body>
@@ -389,6 +425,8 @@
             <button class="menu-btn" onclick="showSection('medicine-reminder')">用药提醒</button>
             <button class="menu-btn" onclick="showSection('family-album')">家庭相册</button>
             <button class="menu-btn" onclick="showSection('medical')">我的基础病</button>
+            <button class="menu-btn" onclick="handleQuickDiagnosis()">一键问诊</button>
+            <button class="menu-btn" onclick="handleQuickTaxi()">一键打车</button>
         </section>
 
         <!-- 设置界面 -->
@@ -422,6 +460,10 @@
                 <div class="setting-item">
                     <label>过敏药物（用逗号分隔）：</label>
                     <input type="text" class="settings-input" id="set-allergies" placeholder="例如：青霉素">
+                </div>
+                <div class="setting-item">
+                    <label>常用打车点（用逗号分隔）：</label>
+                    <input type="text" class="settings-input" id="set-taxi-locations" placeholder="例如：医院,超市,公园">
                 </div>
             </div>
             <button class="menu-btn" onclick="saveSettings()">保存设置</button>
@@ -690,6 +732,7 @@
         let accounts = JSON.parse(localStorage.getItem('accounts')) || {};
         let photos = JSON.parse(localStorage.getItem('photos')) || [];
         let currentUser = null;
+        let taxiLocations = JSON.parse(localStorage.getItem('taxiLocations')) || [];
 
         // 获取屏幕常亮锁
         async function getWakeLock() {
@@ -767,6 +810,7 @@
             document.getElementById('set-allergies').value = medicalInfo.allergies.join(', ');
             document.getElementById('set-contact1').value = medicalInfo.emergencyContact1;
             document.getElementById('set-contact2').value = medicalInfo.emergencyContact2;
+            document.getElementById('set-taxi-locations').value = taxiLocations.join(', ');
         }
 
         // 保存设置
@@ -796,6 +840,10 @@
                 emergencyContact2: document.getElementById('set-contact2').value.trim()
             };
             localStorage.setItem('medicalInfo', JSON.stringify(medicalInfo));
+
+            // 保存常用打车点
+            taxiLocations = document.getElementById('set-taxi-locations').value.split(',').map(s => s.trim());
+            localStorage.setItem('taxiLocations', JSON.stringify(taxiLocations));
             
             alert('设置保存成功！');
             speak('设置已保存');
@@ -1037,28 +1085,7 @@
                     // 根据天气设置图标
                     const weatherIcon = document.getElementById('weather-icon');
                     if (weatherIcon) {
-                        const weatherText = weather.weather.toLowerCase();
-                        let iconUrl = 'https://api.iconify.design/emojione:cloud.svg';
-                        
-                        if (weatherText.includes('晴')) {
-                            iconUrl = 'https://api.iconify.design/emojione:sun.svg';
-                        } else if (weatherText.includes('多云')) {
-                            iconUrl = 'https://api.iconify.design/emojione:partly-sunny.svg';
-                        } else if (weatherText.includes('雨')) {
-                            iconUrl = 'https://api.iconify.design/emojione:umbrella-with-rain-drops.svg';
-                        } else if (weatherText.includes('雪')) {
-                            iconUrl = 'https://api.iconify.design/emojione:snowflake.svg';
-                        }
-                        
-                        // 针对Safari的特殊处理
-                        if (navigator.userAgent.includes('Safari') && !navigator.userAgent.includes('Chrome')) {
-                            weatherIcon.onload = function() {
-                                this.style.display = 'inline-block';
-                            };
-                            weatherIcon.style.display = 'none';
-                        }
-                        
-                        weatherIcon.src = iconUrl;
+                        weatherIcon.src = getWeatherIcon(weather.weather);
                     }
                 }
             } catch (error) {
@@ -1629,6 +1656,50 @@
         const GITHUB_TOKEN = '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'; // 替换为您的GitHub Token
         const GITHUB_REPO = '1'; // 替换为您的仓库名
         const GITHUB_BRANCH = 'main';
+
+        // 新增天气图标获取函数
+        function getWeatherIcon(weatherText) {
+            const weatherTextLower = weatherText.toLowerCase();
+            let iconUrl = 'https://api.iconify.design/emojione:cloud.svg';
+            
+            if (weatherTextLower.includes('晴')) {
+                iconUrl = 'https://api.iconify.design/emojione:sun.svg';
+            } else if (weatherTextLower.includes('多云')) {
+                iconUrl = 'https://api.iconify.design/emojione:partly-sunny.svg';
+            } else if (weatherTextLower.includes('阴')) {
+                iconUrl = 'https://api.iconify.design/emojione:cloud.svg';
+            } else if (weatherTextLower.includes('雨')) {
+                iconUrl = 'https://api.iconify.design/emojione:umbrella-with-rain-drops.svg';
+            } else if (weatherTextLower.includes('雪')) {
+                iconUrl = 'https://api.iconify.design/emojione:snowflake.svg';
+            } else if (weatherTextLower.includes('雾')) {
+                iconUrl = 'https://api.iconify.design/emojione:fog.svg';
+            } else if (weatherTextLower.includes('霾')) {
+                iconUrl = 'https://api.iconify.design/emojione:fog.svg';
+            }
+            
+            return iconUrl;
+        }
+
+        // 处理一键问诊
+        function handleQuickDiagnosis() {
+            speak('一键问诊');
+            // 打开夸克在线问诊页面
+            window.open('https://quark.sm.cn/medical/online', '_blank');
+        }
+
+        // 处理一键打车
+        function handleQuickTaxi() {
+            speak('一键打车');
+            // 打开滴滴打车小程序
+            if (navigator.userAgent.match(/MicroMessenger/i)) {
+                // 微信环境
+                window.location.href = 'weixin://dl/business/?t=xxxxx'; // 替换为实际的滴滴打车小程序路径
+            } else {
+                // 其他环境
+                window.location.href = 'https://www.didiglobal.com/';
+            }
+        }
     </script>
 </body>
 </html>
