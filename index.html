@@ -1086,6 +1086,12 @@
                     const weatherIcon = document.getElementById('weather-icon');
                     if (weatherIcon) {
                         weatherIcon.src = getWeatherIcon(weather.weather);
+                        // 添加图标加载动画
+                        weatherIcon.style.transition = 'opacity 0.3s';
+                        weatherIcon.style.opacity = '0';
+                        weatherIcon.onload = function() {
+                            this.style.opacity = '1';
+                        };
                     }
                 }
             } catch (error) {
@@ -1669,13 +1675,23 @@
             } else if (weatherTextLower.includes('阴')) {
                 iconUrl = 'https://api.iconify.design/emojione:cloud.svg';
             } else if (weatherTextLower.includes('雨')) {
-                iconUrl = 'https://api.iconify.design/emojione:umbrella-with-rain-drops.svg';
+                if (weatherTextLower.includes('雷')) {
+                    iconUrl = 'https://api.iconify.design/emojione:cloud-with-lightning-and-rain.svg';
+                } else if (weatherTextLower.includes('阵')) {
+                    iconUrl = 'https://api.iconify.design/emojione:cloud-with-rain.svg';
+                } else {
+                    iconUrl = 'https://api.iconify.design/emojione:umbrella-with-rain-drops.svg';
+                }
             } else if (weatherTextLower.includes('雪')) {
-                iconUrl = 'https://api.iconify.design/emojione:snowflake.svg';
-            } else if (weatherTextLower.includes('雾')) {
+                if (weatherTextLower.includes('阵')) {
+                    iconUrl = 'https://api.iconify.design/emojione:cloud-with-snow.svg';
+                } else {
+                    iconUrl = 'https://api.iconify.design/emojione:snowflake.svg';
+                }
+            } else if (weatherTextLower.includes('雾') || weatherTextLower.includes('霾')) {
                 iconUrl = 'https://api.iconify.design/emojione:fog.svg';
-            } else if (weatherTextLower.includes('霾')) {
-                iconUrl = 'https://api.iconify.design/emojione:fog.svg';
+            } else if (weatherTextLower.includes('沙尘')) {
+                iconUrl = 'https://api.iconify.design/emojione:desert.svg';
             }
             
             return iconUrl;
@@ -1684,21 +1700,84 @@
         // 处理一键问诊
         function handleQuickDiagnosis() {
             speak('一键问诊');
-            // 打开夸克在线问诊页面
-            window.open('https://quark.sm.cn/medical/online', '_blank');
+            // 创建问诊选项弹窗
+            const options = [
+                { name: '在线问诊', url: 'https://quark.sm.cn/medical/online' },
+                { name: '图文问诊', url: 'https://quark.sm.cn/medical/chat' },
+                { name: '视频问诊', url: 'https://quark.sm.cn/medical/video' }
+            ];
+            
+            const dialog = document.createElement('div');
+            dialog.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: white;
+                padding: 20px;
+                border-radius: 15px;
+                box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                z-index: 1000;
+            `;
+            
+            dialog.innerHTML = `
+                <h2 style="margin-bottom: 20px; font-size: 24px;">选择问诊方式</h2>
+                ${options.map(opt => `
+                    <button class="menu-btn" style="margin: 10px 0; width: 100%;" onclick="window.open('${opt.url}', '_blank')">
+                        ${opt.name}
+                    </button>
+                `).join('')}
+                <button class="menu-btn back-btn" style="margin-top: 10px;" onclick="this.parentElement.remove()">取消</button>
+            `;
+            
+            document.body.appendChild(dialog);
         }
 
         // 处理一键打车
         function handleQuickTaxi() {
             speak('一键打车');
-            // 打开滴滴打车小程序
-            if (navigator.userAgent.match(/MicroMessenger/i)) {
-                // 微信环境
-                window.location.href = 'weixin://dl/business/?t=xxxxx'; // 替换为实际的滴滴打车小程序路径
-            } else {
-                // 其他环境
-                window.location.href = 'https://www.didiglobal.com/';
+            if (taxiLocations.length === 0) {
+                alert('请先在设置中添加常用打车点');
+                showSection('settings');
+                return;
             }
+
+            // 创建打车选项弹窗
+            const dialog = document.createElement('div');
+            dialog.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: white;
+                padding: 20px;
+                border-radius: 15px;
+                box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                z-index: 1000;
+                max-width: 90%;
+                width: 400px;
+            `;
+            
+            dialog.innerHTML = `
+                <h2 style="margin-bottom: 20px; font-size: 24px;">选择目的地</h2>
+                <div class="taxi-locations">
+                    ${taxiLocations.map(location => `
+                        <button class="taxi-location-btn" onclick="openDidiTaxi('${location}')">
+                            ${location}
+                        </button>
+                    `).join('')}
+                </div>
+                <button class="menu-btn back-btn" style="margin-top: 20px;" onclick="this.parentElement.remove()">取消</button>
+            `;
+            
+            document.body.appendChild(dialog);
+        }
+
+        // 打开滴滴打车
+        function openDidiTaxi(destination) {
+            // 使用滴滴打车网页版
+            const url = `https://www.didiglobal.com/order?destination=${encodeURIComponent(destination)}`;
+            window.open(url, '_blank');
         }
     </script>
 </body>
