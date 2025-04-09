@@ -10,6 +10,7 @@
             --primary-color: #E74C3C;
             --secondary-color: #3498DB;
             --text-size: 24px;
+            --button-color: #E85C4D;
         }
 
         body {
@@ -20,29 +21,53 @@
             font-size: var(--text-size);
         }
 
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .user-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #ccc;
+        }
+
+        .settings-icon {
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+        }
+
+        .weather-info {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+
         .container {
             max-width: 800px;
             margin: 0 auto;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
         }
 
         .menu-btn {
             width: 100%;
-            padding: 15px;
-            margin: 5px 0;
+            padding: 20px;
+            margin: 10px 0;
             font-size: var(--text-size);
-            background-color: var(--primary-color);
+            background-color: var(--button-color);
             color: white;
             border: none;
-            border-radius: 10px;
+            border-radius: 15px;
             cursor: pointer;
+            text-align: center;
             transition: background-color 0.3s;
         }
 
         .menu-btn:hover {
-            background-color: #c0392b;
+            background-color: #d64b3d;
         }
 
         .back-btn {
@@ -471,26 +496,33 @@
 </head>
 <body>
     <div class="container">
-        <!-- 天气信息 -->
+        <div class="header">
+            <div class="user-icon"></div>
+            <div class="settings-icon">⚙️</div>
+        </div>
+
         <div class="weather-info">
-            <div id="date-time"></div>
+            <div id="date-time">4月1日 星期二 13:53</div>
             <div id="weather">
-                <img id="weather-icon" src="" alt="天气图标">
-                <span id="weather-text"></span>
+                <span id="weather-text">21°C 阴</span>
             </div>
         </div>
 
         <!-- 主菜单 -->
         <section id="main-menu">
-            <button class="menu-btn" onclick="showSection('medicine-reminder')">💊 用药提醒</button>
-            <button class="menu-btn" onclick="showSection('family-album')">📸 家庭相册</button>
-            <button class="menu-btn" onclick="showSection('tomorrow-weather')">🌤️ 明日天气</button>
-            <button class="menu-btn" onclick="showSection('account')">👤 账号管理</button>
-            <button class="menu-btn" onclick="showSection('settings')">⚙️ 设置</button>
-            <button class="menu-btn" onclick="handleQuickDiagnosis()">🏥 一键问诊</button>
-            <button class="menu-btn" onclick="handleQuickTaxi()">🚕 一键打车</button>
-            <button class="menu-btn" onclick="showBookManagement()">📚 图书管理</button>
-            <button class="menu-btn" onclick="showMemoryCorner()">💭 社区记忆角</button>
+            <button class="menu-btn">紧急求救</button>
+            <button class="menu-btn">呼叫亲属</button>
+            <button class="menu-btn">社区医生</button>
+            <button class="menu-btn">物业联系</button>
+            <button class="menu-btn">万能问答</button>
+            <button class="menu-btn">明日天气</button>
+            <button class="menu-btn">用药提醒</button>
+            <button class="menu-btn">家庭相册</button>
+            <button class="menu-btn">我的基础病</button>
+            <button class="menu-btn">一键问诊</button>
+            <button class="menu-btn">一键打车</button>
+            <button class="menu-btn">一键借阅</button>
+            <button class="menu-btn">社区记忆角</button>
         </section>
 
         <!-- 设置界面 -->
