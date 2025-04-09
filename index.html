@@ -1316,17 +1316,8 @@
                         weatherElement.textContent = `${weather.temperature}°C ${weather.weather}`;
                     }
                     
-                    // 根据天气设置图标
-                    const weatherIcon = document.getElementById('weather-icon');
-                    if (weatherIcon) {
-                        weatherIcon.src = getWeatherIcon(weather.weather);
-                        // 添加图标加载动画
-                        weatherIcon.style.transition = 'opacity 0.3s';
-                        weatherIcon.style.opacity = '0';
-                        weatherIcon.onload = function() {
-                            this.style.opacity = '1';
-                        };
-                    }
+                    // 更新天气图标
+                    updateWeatherIcon(weather.weather);
                 }
             } catch (error) {
                 console.error('获取天气信息失败:', error);
@@ -1912,9 +1903,21 @@
         function handleQuickDiagnosis() {
             speak('一键问诊');
             const options = [
-                { name: '在线问诊', url: 'https://quark.sm.cn/medical/online' },
-                { name: '图文问诊', url: 'https://quark.sm.cn/medical/chat' },
-                { name: '视频问诊', url: 'https://quark.sm.cn/medical/video' }
+                { 
+                    name: '在线问诊', 
+                    url: 'https://quark.sm.cn/medical/online',
+                    icon: '👨‍⚕️'
+                },
+                { 
+                    name: '图文问诊', 
+                    url: 'https://quark.sm.cn/medical/chat',
+                    icon: '💬'
+                },
+                { 
+                    name: '视频问诊', 
+                    url: 'https://quark.sm.cn/medical/video',
+                    icon: '📹'
+                }
             ];
             
             const dialog = document.createElement('div');
@@ -1923,8 +1926,8 @@
                 <div class="dialog-content">
                     <h3>选择问诊方式</h3>
                     ${options.map(opt => `
-                        <button class="menu-btn" onclick="window.open('${opt.url}', '_blank')">
-                            ${opt.name}
+                        <button class="menu-btn" onclick="openQuarkMedical('${opt.url}')">
+                            ${opt.icon} ${opt.name}
                         </button>
                     `).join('')}
                     <button class="cancel-btn" onclick="this.parentElement.parentElement.remove()">取消</button>
@@ -1932,6 +1935,36 @@
             `;
             
             document.body.appendChild(dialog);
+        }
+
+        // 新增夸克问诊打开函数
+        function openQuarkMedical(url) {
+            speak('正在打开夸克问诊');
+            // 检查是否在微信环境中
+            if (isWeixinBrowser()) {
+                // 在微信中打开夸克小程序
+                wx.miniProgram.navigateTo({
+                    url: `/pages/medical/index?type=${url.split('/').pop()}`,
+                    success: function() {
+                        console.log('成功打开夸克问诊小程序');
+                    },
+                    fail: function(err) {
+                        console.error('打开夸克问诊小程序失败:', err);
+                        // 如果小程序打开失败，尝试打开网页版
+                        window.open(url, '_blank');
+                    }
+                });
+            } else {
+                // 在其他浏览器中直接打开网页版
+                window.open(url, '_blank');
+            }
+            // 关闭对话框
+            document.querySelector('.dialog').remove();
+        }
+
+        // 添加微信环境检测函数
+        function isWeixinBrowser() {
+            return /micromessenger/i.test(navigator.userAgent);
         }
 
         // 修改打车服务函数
@@ -2037,13 +2070,32 @@
         // 优化天气图标显示
         function updateWeatherIcon(weatherType) {
             const iconMap = {
-                'sunny': '☀️',
-                'cloudy': '☁️',
-                'rainy': '🌧️',
-                'snowy': '🌨️'
+                '晴': '☀️',
+                '多云': '⛅',
+                '阴': '☁️',
+                '小雨': '🌧️',
+                '中雨': '🌧️',
+                '大雨': '⛈️',
+                '雷阵雨': '⛈️',
+                '阵雨': '🌦️',
+                '小雪': '🌨️',
+                '中雪': '🌨️',
+                '大雪': '❄️',
+                '雾': '🌫️',
+                '霾': '😷',
+                '沙尘': '🌪️'
             };
+            
             const icon = document.getElementById('weather-icon');
-            icon.textContent = iconMap[weatherType] || '☀️';
+            // 遍历天气类型映射，找到匹配的图标
+            for (let [type, emoji] of Object.entries(iconMap)) {
+                if (weatherType.includes(type)) {
+                    icon.textContent = emoji;
+                    return;
+                }
+            }
+            // 默认图标
+            icon.textContent = '☀️';
         }
     </script>
 </body>
