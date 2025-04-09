@@ -397,6 +397,157 @@
         .taxi-location-btn:hover {
             background: #2980B9;
         }
+
+        .consultation-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .consultation-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            background: #f5f5f5;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .consultation-btn:hover {
+            background: #e0e0e0;
+            transform: translateY(-2px);
+        }
+
+        .consultation-icon {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+
+        .consultation-name {
+            font-size: 14px;
+            color: #333;
+        }
+
+        .dialog {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .dialog-content {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 400px;
+            transform: translateY(20px);
+            transition: transform 0.3s ease;
+        }
+
+        .dialog-content h3 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .cancel-btn {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            background: #f0f0f0;
+            color: #666;
+            cursor: pointer;
+            margin-top: 15px;
+        }
+
+        .cancel-btn:hover {
+            background: #e0e0e0;
+        }
+
+        /* 新增功能按钮样式 */
+        .feature-btn {
+            background: var(--secondary-color);
+            margin-bottom: 10px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: white;
+            width: 90%;
+            max-width: 500px;
+            margin: 50px auto;
+            padding: 20px;
+            border-radius: 15px;
+            position: relative;
+        }
+
+        .close-btn {
+            position: absolute;
+            right: 20px;
+            top: 10px;
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .feedback-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .feedback-textarea {
+            width: 100%;
+            height: 150px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 18px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 15px;
+            font-size: 20px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .memory-upload {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .weather-icon {
+            width: 32px;
+            height: 32px;
+            margin-right: 10px;
+        }
     </style>
 </head>
 <body>
@@ -427,6 +578,9 @@
             <button class="menu-btn" onclick="showSection('medical')">我的基础病</button>
             <button class="menu-btn" onclick="handleQuickDiagnosis()">一键问诊</button>
             <button class="menu-btn" onclick="handleQuickTaxi()">一键打车</button>
+            <button class="menu-btn feature-btn" onclick="showTaxiService()">一键打车</button>
+            <button class="menu-btn feature-btn" onclick="showLibraryService()">一键借阅</button>
+            <button class="menu-btn feature-btn" onclick="showMemoryCorner()">社区记忆角</button>
         </section>
 
         <!-- 设置界面 -->
@@ -462,8 +616,8 @@
                     <input type="text" class="settings-input" id="set-allergies" placeholder="例如：青霉素">
                 </div>
                 <div class="setting-item">
-                    <label>常用打车点（用逗号分隔）：</label>
-                    <input type="text" class="settings-input" id="set-taxi-locations" placeholder="例如：医院,超市,公园">
+                    <label>常用上车点（用逗号分隔）：</label>
+                    <input type="text" class="settings-input" id="set-taxi-locations" placeholder="例如：家,医院,超市">
                 </div>
             </div>
             <button class="menu-btn" onclick="saveSettings()">保存设置</button>
@@ -703,6 +857,74 @@
         </section>
     </div>
 
+    <!-- 打车服务模态框 -->
+    <div id="taxi-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal('taxi-modal')">&times;</span>
+            <h2>选择目的地</h2>
+            <input type="text" class="search-input" placeholder="请输入目的地" id="destination">
+            <button class="menu-btn" onclick="callDidi()">呼叫滴滴</button>
+        </div>
+    </div>
+
+    <!-- 图书服务模态框 -->
+    <div id="library-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal('library-modal')">&times;</span>
+            <h2>图书角服务</h2>
+            <button class="menu-btn" onclick="showBookList()">查阅书本</button>
+            <button class="menu-btn" onclick="borrowBook()">借书</button>
+            <button class="menu-btn" onclick="returnBook()">还书</button>
+            <button class="menu-btn" onclick="showFeedback()">图书角意见反馈</button>
+        </div>
+    </div>
+
+    <!-- 意见反馈模态框 -->
+    <div id="feedback-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal('feedback-modal')">&times;</span>
+            <h2>图书角意见反馈</h2>
+            <form class="feedback-form">
+                <textarea class="feedback-textarea" placeholder="请输入您的意见或建议"></textarea>
+                <button class="menu-btn" onclick="submitFeedback()">提交反馈</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- 社区记忆角模态框 -->
+    <div id="memory-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal('memory-modal')">&times;</span>
+            <h2>社区记忆角</h2>
+            <button class="menu-btn" onclick="showSearchPerson()">搜索人物</button>
+            <button class="menu-btn" onclick="showUploadMemory()">上传记忆</button>
+        </div>
+    </div>
+
+    <!-- 搜索人物模态框 -->
+    <div id="search-person-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal('search-person-modal')">&times;</span>
+            <h2>搜索人物</h2>
+            <input type="text" class="search-input" placeholder="请输入人物姓名" id="person-name">
+            <button class="menu-btn" onclick="searchPerson()">搜索</button>
+            <div id="search-results"></div>
+        </div>
+    </div>
+
+    <!-- 上传记忆模态框 -->
+    <div id="upload-memory-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal('upload-memory-modal')">&times;</span>
+            <h2>上传记忆</h2>
+            <form class="memory-upload">
+                <input type="text" class="search-input" placeholder="人物姓名" id="memory-person-name">
+                <textarea class="feedback-textarea" placeholder="请输入生平事迹"></textarea>
+                <button class="menu-btn" onclick="submitMemory()">提交记忆</button>
+            </form>
+        </div>
+    </div>
+
     <script>
         // 初始化电话号码（从localStorage读取）
         let phoneNumbers = JSON.parse(localStorage.getItem('phoneNumbers')) || {
@@ -841,7 +1063,7 @@
             };
             localStorage.setItem('medicalInfo', JSON.stringify(medicalInfo));
 
-            // 保存常用打车点
+            // 保存常用上车点
             taxiLocations = document.getElementById('set-taxi-locations').value.split(',').map(s => s.trim());
             localStorage.setItem('taxiLocations', JSON.stringify(taxiLocations));
             
@@ -1699,6 +1921,10 @@
 
         // 处理一键问诊
         function handleQuickDiagnosis() {
+            const consultationOptions = [
+                {
+                    name: '在线问诊',
+                    icon: '👨‍⚕️',
             speak('一键问诊');
             // 创建问诊选项弹窗
             const options = [
@@ -1737,7 +1963,7 @@
         function handleQuickTaxi() {
             speak('一键打车');
             if (taxiLocations.length === 0) {
-                alert('请先在设置中添加常用打车点');
+                alert('请先在设置中添加常用上车点');
                 showSection('settings');
                 return;
             }
@@ -1759,7 +1985,7 @@
             `;
             
             dialog.innerHTML = `
-                <h2 style="margin-bottom: 20px; font-size: 24px;">选择目的地</h2>
+                <h2 style="margin-bottom: 20px; font-size: 24px;">选择上车点</h2>
                 <div class="taxi-locations">
                     ${taxiLocations.map(location => `
                         <button class="taxi-location-btn" onclick="openDidiTaxi('${location}')">
@@ -1774,10 +2000,119 @@
         }
 
         // 打开滴滴打车
-        function openDidiTaxi(destination) {
-            // 使用滴滴打车网页版
-            const url = `https://www.didiglobal.com/order?destination=${encodeURIComponent(destination)}`;
-            window.open(url, '_blank');
+        function openDidiTaxi(pickupLocation) {
+            // 检查是否在微信环境中
+            if (isWeixinBrowser()) {
+                // 在微信中打开滴滴小程序
+                wx.miniProgram.navigateTo({
+                    url: `/pages/index/index?pickup=${encodeURIComponent(pickupLocation)}`,
+                    success: function() {
+                        console.log('成功打开滴滴小程序');
+                    },
+                    fail: function(err) {
+                        console.error('打开滴滴小程序失败:', err);
+                        alert('打开滴滴小程序失败，请确保已安装滴滴出行小程序');
+                    }
+                });
+            } else {
+                // 在其他浏览器中打开网页版
+                const url = `https://www.didiglobal.com/order?pickup=${encodeURIComponent(pickupLocation)}`;
+                window.open(url, '_blank');
+            }
+            // 移除对话框
+            document.querySelector('.dialog').remove();
+        }
+
+        // 添加微信环境检测函数
+        function isWeixinBrowser() {
+            return /micromessenger/i.test(navigator.userAgent);
+        }
+
+        // 显示模态框
+        function showModal(modalId) {
+            document.getElementById(modalId).style.display = 'block';
+        }
+
+        // 关闭模态框
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        // 打车服务
+        function showTaxiService() {
+            showModal('taxi-modal');
+        }
+
+        function callDidi() {
+            const destination = document.getElementById('destination').value;
+            if (destination) {
+                // 跳转到滴滴打车
+                window.location.href = `diditaxi://call?destination=${encodeURIComponent(destination)}`;
+            }
+        }
+
+        // 图书服务
+        function showLibraryService() {
+            showModal('library-modal');
+        }
+
+        function showFeedback() {
+            closeModal('library-modal');
+            showModal('feedback-modal');
+        }
+
+        function submitFeedback() {
+            const feedback = document.querySelector('.feedback-textarea').value;
+            if (feedback) {
+                alert('感谢您的反馈！');
+                closeModal('feedback-modal');
+            }
+        }
+
+        // 社区记忆角
+        function showMemoryCorner() {
+            showModal('memory-modal');
+        }
+
+        function showSearchPerson() {
+            closeModal('memory-modal');
+            showModal('search-person-modal');
+        }
+
+        function showUploadMemory() {
+            closeModal('memory-modal');
+            showModal('upload-memory-modal');
+        }
+
+        function searchPerson() {
+            const name = document.getElementById('person-name').value;
+            if (name) {
+                // 这里应该调用后端API进行搜索
+                const results = document.getElementById('search-results');
+                results.innerHTML = `<p>正在搜索 ${name} 的相关信息...</p>`;
+            }
+        }
+
+        function submitMemory() {
+            const name = document.getElementById('memory-person-name').value;
+            const memory = document.querySelector('#upload-memory-modal .feedback-textarea').value;
+            if (name && memory) {
+                // 这里应该调用后端API保存记忆
+                alert('记忆上传成功！');
+                closeModal('upload-memory-modal');
+            }
+        }
+
+        // 优化天气图标显示
+        function updateWeatherIcon(weatherType) {
+            const iconMap = {
+                'sunny': '☀️',
+                'cloudy': '☁️',
+                'rainy': '🌧️',
+                'snowy': '🌨️'
+            };
+            const icon = document.getElementById('weather-icon');
+            icon.textContent = iconMap[weatherType] || '☀️';
         }
     </script>
 </body>
