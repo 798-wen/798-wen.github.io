@@ -1817,7 +1817,7 @@
             }
         }
 
-        // 修改初始化函数，添加照片同步
+        // 修改初始化函数，添加语音播报
         document.addEventListener('DOMContentLoaded', () => {
             // 检查是否有已登录的账号
             const savedDeviceId = localStorage.getItem('currentDeviceId');
@@ -1869,7 +1869,7 @@
             const currentHour = now.getHours();
             const currentMinute = now.getMinutes();
             
-            let welcomeText = '您好，我是您的智能助手，请点击按钮使用各项功能';
+            let welcomeText = '您好，我是您的智能手环助手，请点击按钮使用各项功能';
             
             if (todayReminders.length > 0) {
                 const upcomingReminders = todayReminders.map(reminder => {
@@ -1892,46 +1892,23 @@
             speak(welcomeText);
         }
 
-        // GitHub相关配置
-        const GITHUB_TOKEN = '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'; // 替换为您的GitHub Token
-        const GITHUB_REPO = '1'; // 替换为您的仓库名
-        const GITHUB_BRANCH = 'main';
-
-        // 新增天气图标获取函数
-        function getWeatherIcon(weatherText) {
-            const weatherTextLower = weatherText.toLowerCase();
-            let iconUrl = 'https://api.iconify.design/emojione:cloud.svg';
-            
-            if (weatherTextLower.includes('晴')) {
-                iconUrl = 'https://api.iconify.design/emojione:sun.svg';
-            } else if (weatherTextLower.includes('多云')) {
-                iconUrl = 'https://api.iconify.design/emojione:partly-sunny.svg';
-            } else if (weatherTextLower.includes('阴')) {
-                iconUrl = 'https://api.iconify.design/emojione:cloud.svg';
-            } else if (weatherTextLower.includes('雨')) {
-                if (weatherTextLower.includes('雷')) {
-                    iconUrl = 'https://api.iconify.design/emojione:cloud-with-lightning-and-rain.svg';
-                } else if (weatherTextLower.includes('阵')) {
-                    iconUrl = 'https://api.iconify.design/emojione:cloud-with-rain.svg';
-                } else {
-                    iconUrl = 'https://api.iconify.design/emojione:umbrella-with-rain-drops.svg';
-                }
-            } else if (weatherTextLower.includes('雪')) {
-                if (weatherTextLower.includes('阵')) {
-                    iconUrl = 'https://api.iconify.design/emojione:cloud-with-snow.svg';
-                } else {
-                    iconUrl = 'https://api.iconify.design/emojione:snowflake.svg';
-                }
-            } else if (weatherTextLower.includes('雾') || weatherTextLower.includes('霾')) {
-                iconUrl = 'https://api.iconify.design/emojione:fog.svg';
-            } else if (weatherTextLower.includes('沙尘')) {
-                iconUrl = 'https://api.iconify.design/emojione:desert.svg';
+        // 修改显示模态框函数
+        function showModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.style.display = 'block';
             }
-            
-            return iconUrl;
         }
 
-        // 处理一键问诊
+        // 修改关闭模态框函数
+        function closeModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.style.display = 'none';
+            }
+        }
+
+        // 修改一键问诊函数
         function handleQuickDiagnosis() {
             speak('一键问诊');
             const options = [
@@ -1957,7 +1934,7 @@
             document.body.appendChild(dialog);
         }
 
-        // 打车服务
+        // 修改打车服务函数
         function showTaxiService() {
             speak('一键打车');
             showModal('taxi-modal');
@@ -1972,7 +1949,7 @@
             }
         }
 
-        // 图书服务
+        // 修改图书服务函数
         function showLibraryService() {
             speak('一键借阅');
             showModal('library-modal');
@@ -2012,7 +1989,7 @@
             }
         }
 
-        // 社区记忆角
+        // 修改社区记忆角函数
         function showMemoryCorner() {
             speak('社区记忆角');
             showModal('memory-modal');
