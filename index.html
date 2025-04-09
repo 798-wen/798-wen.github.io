@@ -577,10 +577,9 @@
             <button class="menu-btn" onclick="showSection('family-album')">家庭相册</button>
             <button class="menu-btn" onclick="showSection('medical')">我的基础病</button>
             <button class="menu-btn" onclick="handleQuickDiagnosis()">一键问诊</button>
-            <button class="menu-btn" onclick="handleQuickTaxi()">一键打车</button>
-            <button class="menu-btn feature-btn" onclick="showTaxiService()">一键打车</button>
-            <button class="menu-btn feature-btn" onclick="showLibraryService()">一键借阅</button>
-            <button class="menu-btn feature-btn" onclick="showMemoryCorner()">社区记忆角</button>
+            <button class="menu-btn" onclick="showTaxiService()">一键打车</button>
+            <button class="menu-btn" onclick="showLibraryService()">一键借阅</button>
+            <button class="menu-btn" onclick="showMemoryCorner()">社区记忆角</button>
         </section>
 
         <!-- 设置界面 -->
@@ -1088,7 +1087,7 @@
                 
                 targetSection.classList.remove('hidden');
                 
-                // 根据不同的section执行相应的初始化
+                // 根据不同的section执行相应的初始化和语音播报
                 switch(sectionId) {
                     case 'medicine-reminder':
                         updateMedicineList();
@@ -1105,6 +1104,19 @@
                     case 'account':
                         updateLoginStatus();
                         speak('账号管理');
+                        break;
+                    case 'ai-chat':
+                        speak('万能问答');
+                        break;
+                    case 'medical':
+                        updateMedicalDisplay();
+                        speak('我的基础病');
+                        break;
+                    case 'doctor':
+                        speak('社区医生');
+                        break;
+                    case 'doctor-message':
+                        speak('发送信息给医生');
                         break;
                 }
                 
@@ -1921,12 +1933,7 @@
 
         // 处理一键问诊
         function handleQuickDiagnosis() {
-            const consultationOptions = [
-                {
-                    name: '在线问诊',
-                    icon: '👨‍⚕️',
             speak('一键问诊');
-            // 创建问诊选项弹窗
             const options = [
                 { name: '在线问诊', url: 'https://quark.sm.cn/medical/online' },
                 { name: '图文问诊', url: 'https://quark.sm.cn/medical/chat' },
@@ -1934,118 +1941,32 @@
             ];
             
             const dialog = document.createElement('div');
-            dialog.style.cssText = `
-                position: fixed;
-                top: 50%;
-                left: 50%;
-                transform: translate(-50%, -50%);
-                background: white;
-                padding: 20px;
-                border-radius: 15px;
-                box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-                z-index: 1000;
-            `;
-            
+            dialog.className = 'dialog';
             dialog.innerHTML = `
-                <h2 style="margin-bottom: 20px; font-size: 24px;">选择问诊方式</h2>
-                ${options.map(opt => `
-                    <button class="menu-btn" style="margin: 10px 0; width: 100%;" onclick="window.open('${opt.url}', '_blank')">
-                        ${opt.name}
-                    </button>
-                `).join('')}
-                <button class="menu-btn back-btn" style="margin-top: 10px;" onclick="this.parentElement.remove()">取消</button>
-            `;
-            
-            document.body.appendChild(dialog);
-        }
-
-        // 处理一键打车
-        function handleQuickTaxi() {
-            speak('一键打车');
-            if (taxiLocations.length === 0) {
-                alert('请先在设置中添加常用上车点');
-                showSection('settings');
-                return;
-            }
-
-            // 创建打车选项弹窗
-            const dialog = document.createElement('div');
-            dialog.style.cssText = `
-                position: fixed;
-                top: 50%;
-                left: 50%;
-                transform: translate(-50%, -50%);
-                background: white;
-                padding: 20px;
-                border-radius: 15px;
-                box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-                z-index: 1000;
-                max-width: 90%;
-                width: 400px;
-            `;
-            
-            dialog.innerHTML = `
-                <h2 style="margin-bottom: 20px; font-size: 24px;">选择上车点</h2>
-                <div class="taxi-locations">
-                    ${taxiLocations.map(location => `
-                        <button class="taxi-location-btn" onclick="openDidiTaxi('${location}')">
-                            ${location}
+                <div class="dialog-content">
+                    <h3>选择问诊方式</h3>
+                    ${options.map(opt => `
+                        <button class="menu-btn" onclick="window.open('${opt.url}', '_blank')">
+                            ${opt.name}
                         </button>
                     `).join('')}
+                    <button class="cancel-btn" onclick="this.parentElement.parentElement.remove()">取消</button>
                 </div>
-                <button class="menu-btn back-btn" style="margin-top: 20px;" onclick="this.parentElement.remove()">取消</button>
             `;
             
             document.body.appendChild(dialog);
-        }
-
-        // 打开滴滴打车
-        function openDidiTaxi(pickupLocation) {
-            // 检查是否在微信环境中
-            if (isWeixinBrowser()) {
-                // 在微信中打开滴滴小程序
-                wx.miniProgram.navigateTo({
-                    url: `/pages/index/index?pickup=${encodeURIComponent(pickupLocation)}`,
-                    success: function() {
-                        console.log('成功打开滴滴小程序');
-                    },
-                    fail: function(err) {
-                        console.error('打开滴滴小程序失败:', err);
-                        alert('打开滴滴小程序失败，请确保已安装滴滴出行小程序');
-                    }
-                });
-            } else {
-                // 在其他浏览器中打开网页版
-                const url = `https://www.didiglobal.com/order?pickup=${encodeURIComponent(pickupLocation)}`;
-                window.open(url, '_blank');
-            }
-            // 移除对话框
-            document.querySelector('.dialog').remove();
-        }
-
-        // 添加微信环境检测函数
-        function isWeixinBrowser() {
-            return /micromessenger/i.test(navigator.userAgent);
-        }
-
-        // 显示模态框
-        function showModal(modalId) {
-            document.getElementById(modalId).style.display = 'block';
-        }
-
-        // 关闭模态框
-        function closeModal(modalId) {
-            document.getElementById(modalId).style.display = 'none';
         }
 
         // 打车服务
         function showTaxiService() {
+            speak('一键打车');
             showModal('taxi-modal');
         }
 
         function callDidi() {
             const destination = document.getElementById('destination').value;
             if (destination) {
+                speak('正在呼叫滴滴');
                 // 跳转到滴滴打车
                 window.location.href = `diditaxi://call?destination=${encodeURIComponent(destination)}`;
             }
@@ -2053,10 +1974,12 @@
 
         // 图书服务
         function showLibraryService() {
+            speak('一键借阅');
             showModal('library-modal');
         }
 
         function showFeedback() {
+            speak('图书角意见反馈');
             closeModal('library-modal');
             showModal('feedback-modal');
         }
@@ -2064,6 +1987,7 @@
         function submitFeedback() {
             const feedback = document.querySelector('.feedback-textarea').value;
             if (feedback) {
+                speak('感谢您的反馈');
                 alert('感谢您的反馈！');
                 closeModal('feedback-modal');
             }
@@ -2071,15 +1995,18 @@
 
         // 社区记忆角
         function showMemoryCorner() {
+            speak('社区记忆角');
             showModal('memory-modal');
         }
 
         function showSearchPerson() {
+            speak('搜索人物');
             closeModal('memory-modal');
             showModal('search-person-modal');
         }
 
         function showUploadMemory() {
+            speak('上传记忆');
             closeModal('memory-modal');
             showModal('upload-memory-modal');
         }
@@ -2087,6 +2014,7 @@
         function searchPerson() {
             const name = document.getElementById('person-name').value;
             if (name) {
+                speak(`正在搜索${name}的相关信息`);
                 // 这里应该调用后端API进行搜索
                 const results = document.getElementById('search-results');
                 results.innerHTML = `<p>正在搜索 ${name} 的相关信息...</p>`;
@@ -2097,6 +2025,7 @@
             const name = document.getElementById('memory-person-name').value;
             const memory = document.querySelector('#upload-memory-modal .feedback-textarea').value;
             if (name && memory) {
+                speak('记忆上传成功');
                 // 这里应该调用后端API保存记忆
                 alert('记忆上传成功！');
                 closeModal('upload-memory-modal');
