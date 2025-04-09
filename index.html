@@ -1978,6 +1978,24 @@
             showModal('library-modal');
         }
 
+        function showBookList() {
+            speak('查阅书本');
+            // 这里应该调用后端API获取图书列表
+            alert('正在获取图书列表...');
+        }
+
+        function borrowBook() {
+            speak('借书');
+            // 这里应该调用后端API处理借书
+            alert('请选择要借阅的图书');
+        }
+
+        function returnBook() {
+            speak('还书');
+            // 这里应该调用后端API处理还书
+            alert('请选择要归还的图书');
+        }
+
         function showFeedback() {
             speak('图书角意见反馈');
             closeModal('library-modal');
@@ -1988,6 +2006,7 @@
             const feedback = document.querySelector('.feedback-textarea').value;
             if (feedback) {
                 speak('感谢您的反馈');
+                // 这里应该调用后端API保存反馈
                 alert('感谢您的反馈！');
                 closeModal('feedback-modal');
             }
@@ -2017,7 +2036,13 @@
                 speak(`正在搜索${name}的相关信息`);
                 // 这里应该调用后端API进行搜索
                 const results = document.getElementById('search-results');
-                results.innerHTML = `<p>正在搜索 ${name} 的相关信息...</p>`;
+                // 模拟搜索结果
+                results.innerHTML = `
+                    <div class="search-result">
+                        <h3>${name}的生平事迹</h3>
+                        <p>这里是${name}的生平事迹内容...</p>
+                    </div>
+                `;
             }
         }
 
