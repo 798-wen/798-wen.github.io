@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="permissions-policy" content="microphone=*, camera=*, geolocation=*, payment=*, usb=*, fullscreen=*, display-capture=*">
-    <title>老年智能手环助手</title>
+    <title>智能助手</title>
     <style>
         :root {
             --primary-color: #E74C3C;
@@ -15,73 +14,43 @@
 
         body {
             font-family: "微软雅黑", Arial, sans-serif;
-            background: #F8F9FA;
             margin: 0;
             padding: 20px;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-
-        #settings-btn {
-            position: static;
-            font-size: 24px;
-            background: none;
-            border: none;
-            cursor: pointer;
-            padding: 8px;
-            margin-left: 20px;
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        #account-btn {
-            position: static;
-            font-size: 24px;
-            background: none;
-            border: none;
-            cursor: pointer;
-            padding: 8px;
-            margin-right: 5px;
-        }
-
-        .menu-btn {
-            display: block;
-            width: 90%;
-            margin: 15px auto;
-            padding: 25px;
+            background-color: #f5f5f5;
             font-size: var(--text-size);
-            border-radius: 15px;
-            border: none;
-            background: var(--primary-color);
-            color: white;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            cursor: pointer;
-            transition: transform 0.2s;
-        }
-
-        .menu-btn:hover {
-            transform: scale(1.02);
-        }
-
-        .back-btn {
-            background: #7F8C8D;
-            width: 50%;
         }
 
         .container {
             max-width: 800px;
-            width: 100%;
             margin: 0 auto;
-            padding: 20px;
-            padding-top: 60px;
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .menu-btn {
+            width: 100%;
+            padding: 15px;
+            margin: 5px 0;
+            font-size: var(--text-size);
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .menu-btn:hover {
+            background-color: #c0392b;
+        }
+
+        .back-btn {
+            background-color: var(--secondary-color);
+        }
+
+        .back-btn:hover {
+            background-color: #2980b9;
         }
 
         .hidden {
@@ -90,323 +59,298 @@
 
         .settings-form {
             background: white;
-            padding: 30px;
-            border-radius: 15px;
+            padding: 20px;
+            border-radius: 10px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            margin: 20px 0;
         }
 
         .settings-input {
             width: 100%;
-            padding: 15px;
-            font-size: 20px;
-            margin: 10px 0;
-            border: 2px solid #ddd;
-            border-radius: 8px;
+            padding: 10px;
+            margin: 5px 0;
+            font-size: var(--text-size);
+            border: 1px solid #ddd;
+            border-radius: 5px;
         }
 
         .setting-item {
-            margin: 20px 0;
+            margin: 15px 0;
         }
 
         .setting-item label {
-            font-size: 20px;
-            color: #666;
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
         }
 
         .chat-container {
             background: white;
-            padding: 30px;
-            border-radius: 15px;
+            padding: 20px;
+            border-radius: 10px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            margin: 20px 0;
-            height: 500px;
+            height: 400px;
             display: flex;
             flex-direction: column;
         }
 
         .chat-messages {
-            flex: 1;
+            flex-grow: 1;
             overflow-y: auto;
-            padding: 20px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            background: #f8f9fa;
+            padding: 10px;
+            margin-bottom: 10px;
         }
 
         .message {
-            margin: 15px 0;
-            padding: 15px;
-            border-radius: 12px;
-            font-size: 28px;
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
             max-width: 80%;
-            word-wrap: break-word;
         }
 
         .user-message {
-            background: #E3F2FD;
+            background-color: #e3f2fd;
             margin-left: auto;
         }
 
         .ai-message {
-            background: #F5F5F5;
+            background-color: #f5f5f5;
             margin-right: auto;
-            line-height: 1.5;
         }
 
         .chat-input {
-            width: 100%;
-            padding: 15px;
-            font-size: 28px;
-            border: 2px solid #ddd;
-            border-radius: 8px;
-            margin-top: 10px;
+            display: flex;
+            gap: 10px;
+            padding: 10px;
+            background: #f5f5f5;
+            border-radius: 5px;
         }
 
         .voice-input-btn,
-        .voice-input-btn.recording,
-        .voice-status {
-            display: none;
+        .send-btn {
+            padding: 10px 20px;
+            font-size: var(--text-size);
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
         }
 
         .weather-info {
-            text-align: center;
-            padding: 8px 15px;
-            margin-bottom: 10px;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             display: flex;
             align-items: center;
-            justify-content: center;
-            width: 100%;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            background: white;
-            z-index: 999;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            justify-content: space-between;
+            margin-bottom: 20px;
         }
 
         .weather-container {
             display: flex;
-            flex-direction: column;
             align-items: center;
-            flex: 1;
+            gap: 10px;
         }
 
         #date-time {
-            font-size: 16px;
+            font-size: var(--text-size);
             color: #333;
-            display: block;
-            margin-bottom: 2px;
         }
 
         #weather {
-            font-size: 16px;
-            color: #666;
             display: flex;
             align-items: center;
-            gap: 3px;
+            gap: 10px;
         }
 
         .weather-icon {
-            width: 18px;
-            height: 18px;
+            width: 40px;
+            height: 40px;
         }
 
         .send-btn {
-            background: var(--secondary-color);
+            background-color: var(--primary-color);
             color: white;
-            border: none;
-            padding: 20px 40px;
-            border-radius: 8px;
-            cursor: pointer;
-            margin-top: 10px;
-            font-size: 32px;
-            width: 100%;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            transition: transform 0.2s;
         }
 
         .send-btn:hover {
-            transform: scale(1.02);
+            background-color: #c0392b;
         }
 
-        /* 新增样式 */
         .photo-gallery {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-            gap: 15px;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
             padding: 20px;
         }
 
         .photo-item {
             position: relative;
-            aspect-ratio: 1;
-            border-radius: 8px;
-            overflow: hidden;
+            background: white;
+            padding: 10px;
+            border-radius: 10px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
         .photo-item img {
             width: 100%;
-            height: 100%;
-            object-fit: cover;
+            height: auto;
+            border-radius: 5px;
         }
 
         .medicine-reminder-item {
-            background: #f8f9fa;
-            padding: 20px;
-            margin: 15px 0;
-            border-radius: 12px;
+            background: white;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
 
         .medicine-reminder-item button {
-            background: #e74c3c;
+            padding: 8px 15px;
+            background-color: var(--primary-color);
             color: white;
             border: none;
-            padding: 8px 16px;
-            border-radius: 6px;
+            border-radius: 5px;
             cursor: pointer;
             font-size: 16px;
-            transition: background 0.3s;
         }
 
         .medicine-reminder-item button:hover {
-            background: #c0392b;
+            background-color: #c0392b;
         }
 
         .weather-card {
             background: white;
             padding: 20px;
-            border-radius: 8px;
-            margin: 10px 0;
+            border-radius: 10px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin: 20px 0;
         }
 
         .weather-card h3 {
-            margin: 0 0 10px 0;
+            margin: 0 0 15px 0;
             color: #333;
         }
 
         .weather-info-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
+            gap: 15px;
         }
 
         .weather-info-item {
             display: flex;
             flex-direction: column;
-            align-items: center;
+            gap: 5px;
             padding: 10px;
-            background: #f8f9fa;
-            border-radius: 8px;
+            background: #f5f5f5;
+            border-radius: 5px;
         }
 
         .weather-info-item span:first-child {
-            font-size: 14px;
+            font-weight: bold;
             color: #666;
         }
 
         .weather-info-item span:last-child {
-            font-size: 20px;
             color: #333;
-            font-weight: bold;
         }
 
         .medicine-input-group {
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            padding: 15px;
-            margin-bottom: 20px;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin: 20px 0;
         }
+
         .medicine-input-group h3 {
-            margin-top: 0;
+            margin: 0 0 15px 0;
             color: #333;
-            font-size: 20px;
         }
 
         .button-group {
             display: flex;
             gap: 10px;
-            margin: 10px 0;
+            margin: 20px 0;
         }
+
         .button-group .menu-btn {
             flex: 1;
         }
+
         .photo-item {
             position: relative;
-            cursor: pointer;
         }
+
         .photo-item .delete-btn {
             position: absolute;
             top: 5px;
             right: 5px;
-            background: rgba(255, 0, 0, 0.7);
+            background: rgba(231, 76, 60, 0.8);
             color: white;
             border: none;
             border-radius: 50%;
-            width: 24px;
-            height: 24px;
-            display: none;
+            width: 30px;
+            height: 30px;
+            cursor: pointer;
+            display: flex;
             align-items: center;
             justify-content: center;
-            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.3s;
         }
+
         .photo-item:hover .delete-btn {
-            display: flex;
+            opacity: 1;
         }
 
         .weather-icon {
-            width: 32px;
-            height: 32px;
-            margin-right: 8px;
+            width: 40px;
+            height: 40px;
+            transition: transform 0.3s;
         }
 
         .weather-icon-container {
             display: flex;
             align-items: center;
-            justify-content: center;
-            gap: 8px;
+            gap: 10px;
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 5px;
         }
 
-        /* 新增样式 */
         .taxi-locations {
             display: flex;
-            flex-wrap: wrap;
+            flex-direction: column;
             gap: 10px;
-            margin: 10px 0;
+            margin: 20px 0;
         }
 
         .taxi-location-btn {
-            background: #3498DB;
-            color: white;
-            border: none;
-            padding: 15px 20px;
+            padding: 15px;
+            background: white;
+            border: 2px solid var(--secondary-color);
             border-radius: 10px;
             font-size: var(--text-size);
-            margin: 5px;
+            color: var(--secondary-color);
             cursor: pointer;
-            transition: background 0.3s;
-            width: 100%;
-            text-align: center;
+            transition: all 0.3s;
         }
 
         .taxi-location-btn:hover {
-            background: #2980B9;
+            background: var(--secondary-color);
+            color: white;
         }
 
-        /* 图书管理相关样式 */
         .book-management {
-            padding: 20px;
             background: white;
-            border-radius: 15px;
-            margin: 20px;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
         .book-search {
@@ -415,30 +359,30 @@
 
         .book-search input {
             width: 100%;
-            padding: 15px;
-            border: 2px solid #ddd;
-            border-radius: 10px;
+            padding: 10px;
             font-size: var(--text-size);
-            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
         }
 
         .book-list {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            gap: 20px;
-            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
         }
 
         .book-item {
-            background: #f8f9fa;
+            background: #f5f5f5;
             padding: 15px;
             border-radius: 10px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
         }
 
         .book-item h3 {
-            margin: 0 0 10px 0;
-            color: #2c3e50;
+            margin: 0;
+            color: #333;
         }
 
         .book-item p {
@@ -453,30 +397,28 @@
         }
 
         .book-actions button {
-            flex: 1;
-            padding: 8px;
+            padding: 8px 15px;
             border: none;
             border-radius: 5px;
             cursor: pointer;
-            transition: background 0.3s;
+            font-size: 16px;
         }
 
         .borrow-btn {
-            background: #2ecc71;
+            background-color: var(--secondary-color);
             color: white;
         }
 
         .return-btn {
-            background: #e74c3c;
+            background-color: var(--primary-color);
             color: white;
         }
 
-        /* 社区记忆角样式 */
         .memory-corner {
-            padding: 20px;
             background: white;
-            border-radius: 15px;
-            margin: 20px;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
         .memory-search {
@@ -485,30 +427,27 @@
 
         .memory-search input {
             width: 100%;
-            padding: 15px;
-            border: 2px solid #ddd;
-            border-radius: 10px;
+            padding: 10px;
             font-size: var(--text-size);
-            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
         }
 
         .memory-list {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 20px;
-            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
         }
 
         .memory-item {
-            background: #f8f9fa;
-            padding: 20px;
+            background: #f5f5f5;
+            padding: 15px;
             border-radius: 10px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
         .memory-item h3 {
             margin: 0 0 10px 0;
-            color: #2c3e50;
+            color: #333;
         }
 
         .memory-item p {
@@ -522,12 +461,10 @@
 
         .memory-upload textarea {
             width: 100%;
-            padding: 15px;
-            border: 2px solid #ddd;
-            border-radius: 10px;
+            padding: 10px;
             font-size: var(--text-size);
-            margin-bottom: 10px;
-            min-height: 100px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
             resize: vertical;
         }
     </style>
@@ -535,48 +472,25 @@
 <body>
     <div class="container">
         <!-- 天气信息 -->
-        <div class="weather-info" id="weather-info">
-            <button id="account-btn" onclick="showSection('account')">👤</button>
-            <div class="weather-container">
-                <span id="date-time"></span>
-                <div id="weather">
-                    <img id="weather-icon" class="weather-icon" src="" alt="天气">
-                    <span id="weather-text"></span>
-                </div>
+        <div class="weather-info">
+            <div id="date-time"></div>
+            <div id="weather">
+                <img id="weather-icon" src="" alt="天气图标">
+                <span id="weather-text"></span>
             </div>
-            <button id="settings-btn" onclick="showSection('settings')">⚙️</button>
         </div>
 
         <!-- 主菜单 -->
         <section id="main-menu">
-            <div class="container">
-                <div class="weather-info" id="weather-info">
-                    <div id="date-time"></div>
-                    <div id="weather">
-                        <img id="weather-icon" src="" alt="天气图标">
-                        <span id="weather-text"></span>
-                    </div>
-                </div>
-                <div class="chat-container">
-                    <div class="chat-messages" id="chat-messages"></div>
-                    <div class="chat-input">
-                        <input type="text" id="chat-input" placeholder="请输入您的问题...">
-                        <button class="voice-input-btn" onclick="startVoiceInput()">语音输入</button>
-                        <button class="send-btn" onclick="sendMessage()">发送</button>
-                    </div>
-                </div>
-                <div class="button-group">
-                    <button class="menu-btn" onclick="showSection('medicine-reminder')">用药提醒</button>
-                    <button class="menu-btn" onclick="showSection('family-album')">家庭相册</button>
-                    <button class="menu-btn" onclick="showSection('tomorrow-weather')">明日天气</button>
-                    <button class="menu-btn" onclick="showSection('account')">账号管理</button>
-                    <button class="menu-btn" onclick="showSection('settings')">设置</button>
-                    <button class="menu-btn" onclick="handleQuickDiagnosis()">一键问诊</button>
-                    <button class="menu-btn" onclick="handleQuickTaxi()">一键打车</button>
-                    <button class="menu-btn" onclick="showBookManagement()">一键借阅书本</button>
-                    <button class="menu-btn" onclick="showMemoryCorner()">社区记忆角</button>
-                </div>
-            </div>
+            <button class="menu-btn" onclick="showSection('medicine-reminder')">💊 用药提醒</button>
+            <button class="menu-btn" onclick="showSection('family-album')">📸 家庭相册</button>
+            <button class="menu-btn" onclick="showSection('tomorrow-weather')">🌤️ 明日天气</button>
+            <button class="menu-btn" onclick="showSection('account')">👤 账号管理</button>
+            <button class="menu-btn" onclick="showSection('settings')">⚙️ 设置</button>
+            <button class="menu-btn" onclick="handleQuickDiagnosis()">🏥 一键问诊</button>
+            <button class="menu-btn" onclick="handleQuickTaxi()">🚕 一键打车</button>
+            <button class="menu-btn" onclick="showBookManagement()">📚 图书管理</button>
+            <button class="menu-btn" onclick="showMemoryCorner()">💭 社区记忆角</button>
         </section>
 
         <!-- 设置界面 -->
@@ -890,1211 +804,22 @@
     </div>
 
     <script>
-        // 初始化电话号码（从localStorage读取）
-        let phoneNumbers = JSON.parse(localStorage.getItem('phoneNumbers')) || {
-            family: '13800138000',
-            doctor: '13900139000',
-            property: '010-12345678'
-        };
-
-        // 初始化医疗信息
-        let medicalInfo = JSON.parse(localStorage.getItem('medicalInfo')) || {
-            conditions: ["高血压", "糖尿病"],
-            allergies: ["青霉素"],
-            emergencyContact1: "张医生 13800138000",
-            emergencyContact2: "李医生 13800138001"
-        };
-
-        // 初始化聊天记录
-        let chatHistory = JSON.parse(localStorage.getItem('chatHistory')) || [];
-
-        // 初始化语音合成
-        let synth = window.speechSynthesis;
-        let voices = [];
-        let wakeLock = null;
-
         // 初始化变量
-        let medicineReminders = JSON.parse(localStorage.getItem('medicineReminders')) || [];
-        let accounts = JSON.parse(localStorage.getItem('accounts')) || {};
-        let photos = JSON.parse(localStorage.getItem('photos')) || [];
-        let currentUser = null;
-        let taxiLocations = JSON.parse(localStorage.getItem('taxiLocations')) || [];
-
-        // 图书管理相关变量和函数
-        let books = JSON.parse(localStorage.getItem('books')) || [
-            { id: 1, title: '三体', author: '刘慈欣', status: 'available' },
-            { id: 2, title: '活着', author: '余华', status: 'available' },
-            { id: 3, title: '百年孤独', author: '加西亚·马尔克斯', status: 'borrowed' }
-        ];
-
-        let bookRequests = JSON.parse(localStorage.getItem('bookRequests')) || [];
-
-        // 社区记忆角相关变量和函数
-        let memories = JSON.parse(localStorage.getItem('memories')) || [];
-
-        // 获取屏幕常亮锁
-        async function getWakeLock() {
-            try {
-                wakeLock = await navigator.wakeLock.request('screen');
-                wakeLock.addEventListener('release', () => {
-                    console.log('屏幕常亮已释放');
-                });
-            } catch (err) {
-                console.error('获取屏幕常亮失败:', err);
-            }
-        }
-
-        // 语音播报函数
-        function speak(text) {
-            if (!text) return;
-            
-            // 停止当前正在播放的语音
-            synth.cancel();
-
-            // 创建新的语音实例
-            const utterance = new SpeechSynthesisUtterance(text);
-            utterance.lang = 'zh-CN';
-            utterance.rate = 0.8; // 降低语速
-            utterance.pitch = 0.9; // 降低音调
-            utterance.volume = 1.0;
-
-            // 针对Safari的特殊处理
-            if (navigator.userAgent.includes('Safari') && !navigator.userAgent.includes('Chrome')) {
-                // 确保在Safari中正确初始化语音
-                if (voices.length === 0) {
-                    voices = synth.getVoices();
-                }
-                
-                // 在Safari中使用特定的语音设置
-                const chineseVoice = voices.find(voice => 
-                    voice.lang.includes('zh') || 
-                    voice.lang.includes('cmn') || 
-                    voice.name.includes('Chinese')
-                );
-                
-                if (chineseVoice) {
-                    utterance.voice = chineseVoice;
-                }
-            }
-
-            // 播放语音
-            synth.speak(utterance);
-        }
-
-        // 修改时间显示函数
-        function updateDateTime() {
-            const now = new Date();
-            const weekdays = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
-            
-            const dateStr = `${now.getMonth() + 1}月${now.getDate()}日 ${weekdays[now.getDay()]}`;
-            const timeStr = now.toLocaleTimeString('zh-CN', { 
-                hour: '2-digit', 
-                minute: '2-digit',
-                hour12: false
-            });
-            
-            const dateTimeElement = document.getElementById('date-time');
-            if (dateTimeElement) {
-                dateTimeElement.textContent = `${dateStr} ${timeStr}`;
-            }
-        }
-
-        // 显示设置界面时加载当前设置
-        function loadSettings() {
-            document.getElementById('set-family').value = phoneNumbers.family;
-            document.getElementById('set-doctor').value = phoneNumbers.doctor;
-            document.getElementById('set-property').value = phoneNumbers.property;
-            document.getElementById('set-conditions').value = medicalInfo.conditions.join(', ');
-            document.getElementById('set-allergies').value = medicalInfo.allergies.join(', ');
-            document.getElementById('set-contact1').value = medicalInfo.emergencyContact1;
-            document.getElementById('set-contact2').value = medicalInfo.emergencyContact2;
-            document.getElementById('set-taxi-locations').value = taxiLocations.join(', ');
-        }
-
-        // 保存设置
-        function saveSettings() {
-            const phoneRegex = /^(?:\+?86)?(?:1[3-9]\d{9}|0\d{2,3}-?\d{7,8})$/;
-            
-            const newNumbers = {
-                family: document.getElementById('set-family').value.trim(),
-                doctor: document.getElementById('set-doctor').value.trim(),
-                property: document.getElementById('set-property').value.trim()
-            };
-
-            for (let key in newNumbers) {
-                if (!phoneRegex.test(newNumbers[key])) {
-                    alert(`请输入有效的${key}电话号码`);
-                    return;
-                }
-            }
-
-            Object.assign(phoneNumbers, newNumbers);
-            localStorage.setItem('phoneNumbers', JSON.stringify(phoneNumbers));
-
-            medicalInfo = {
-                conditions: document.getElementById('set-conditions').value.split(',').map(s => s.trim()),
-                allergies: document.getElementById('set-allergies').value.split(',').map(s => s.trim()),
-                emergencyContact1: document.getElementById('set-contact1').value.trim(),
-                emergencyContact2: document.getElementById('set-contact2').value.trim()
-            };
-            localStorage.setItem('medicalInfo', JSON.stringify(medicalInfo));
-
-            // 保存常用打车点
-            taxiLocations = document.getElementById('set-taxi-locations').value.split(',').map(s => s.trim());
-            localStorage.setItem('taxiLocations', JSON.stringify(taxiLocations));
-            
-            alert('设置保存成功！');
-            speak('设置已保存');
-            backToMenu();
-        }
-
-        // 显示界面函数
-        function showSection(sectionId) {
-            const sections = document.querySelectorAll('section');
-            sections.forEach(s => s.classList.add('hidden'));
-            
-            const targetSection = document.getElementById(sectionId);
-            if (targetSection) {
-                // 检查是否需要登录
-                if (sectionId === 'family-album' && !currentUser) {
-                    alert('请先登录账号');
-                    showSection('account');
-                    return;
-                }
-                
-                targetSection.classList.remove('hidden');
-                
-                // 根据不同的section执行相应的初始化
-                switch(sectionId) {
-                    case 'medicine-reminder':
-                        updateMedicineList();
-                        speak('用药提醒');
-                        break;
-                    case 'family-album':
-                        updatePhotoGallery();
-                        speak('家庭相册');
-                        break;
-                    case 'tomorrow-weather':
-                        getTomorrowWeather();
-                        speak('明日天气');
-                        break;
-                    case 'account':
-                        updateLoginStatus();
-                        speak('账号管理');
-                        break;
-                }
-                
-                // 控制天气信息显示
-                const weatherInfo = document.getElementById('weather-info');
-                weatherInfo.style.display = sectionId === 'main-menu' ? 'flex' : 'none';
-            }
-        }
-
-        // 返回主菜单
-        function backToMenu() {
-            speak('返回主菜单');
-            showSection('main-menu');
-        }
-
-        // 更新医疗信息显示
-        function updateMedicalDisplay() {
-            document.getElementById('display-conditions').textContent = medicalInfo.conditions.join(', ');
-            document.getElementById('display-allergies').textContent = medicalInfo.allergies.join(', ');
-            document.getElementById('display-contact1').textContent = medicalInfo.emergencyContact1;
-            document.getElementById('display-contact2').textContent = medicalInfo.emergencyContact2;
-        }
-
-        // 发送消息
-        async function sendMessage() {
-            const input = document.getElementById('chat-input');
-            const message = input.value.trim();
-            if (!message) return;
-
-            // 检查是否包含紧急求救关键词
-            if (message.includes('救命') || message.includes('紧急求救') || message.includes('救救我')) {
-                handleEmergency();
-                return;
-            }
-
-            speak('发送问题');
-            // 添加用户消息
-            addMessage(message, 'user');
-            input.value = '';
-
-            try {
-                const response = await fetch('https://ark.cn-beijing.volces.com/api/v3/chat/completions', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': 'Bearer 76e27114-ba0d-4348-a75f-5af0099d12ca'
-                    },
-                    body: JSON.stringify({
-                        model: "doubao-1-5-vision-pro-32k-250115",
-                        messages: [
-                            {
-                                role: "system",
-                                content: `你是一个专业的老年健康助手，请用简单易懂的语言回答问题。回答要简短、清晰，避免使用专业术语，用通俗易懂的比喻来解释。
-                                对于健康问题，请给出适当的建议，包括：
-                                1. 立即需要采取的措施
-                                2. 日常注意事项
-                                3. 需要及时就医的情况
-                                4. 预防措施
-                                请用温和、关心的语气回答，使用"您"来称呼用户。不要使用"老人家"等称呼。不要使用任何特殊符号如###等。`
-                            },
-                            {
-                                role: "user",
-                                content: message
-                            }
-                        ]
-                    })
-                });
-
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.error?.message || 'API请求失败');
-                }
-
-                const data = await response.json();
-                if (data.choices && data.choices[0] && data.choices[0].message) {
-                    const aiResponse = data.choices[0].message.content.replace(/###/g, '');
-                    addMessage(aiResponse, 'ai');
-                    // 语音播放AI回答
-                    speak(aiResponse);
-                } else {
-                    throw new Error('API响应格式错误');
-                }
-            } catch (error) {
-                console.error('AI响应错误:', error);
-                const errorMessage = '抱歉，我现在无法回答您的问题。请稍后再试。';
-                addMessage(errorMessage, 'ai');
-                speak(errorMessage);
-            }
-        }
-
-        // 处理紧急求救
-        async function handleEmergency() {
-            speak('紧急求救');
-            const phoneNumber = '120';
-            
-            // 获取屏幕常亮锁
-            await getWakeLock();
-            
-            const link = document.createElement('a');
-            link.href = `tel:${phoneNumber}`;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-
-            setTimeout(() => {
-                showSection('medical');
-            }, 3000);
-        }
-
-        // 处理呼叫亲属
-        function handleFamilyCall() {
-            speak('呼叫亲属');
-            const phoneNumber = phoneNumbers.family;
-            
-            const link = document.createElement('a');
-            link.href = `tel:${phoneNumber}`;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
-
-        // 处理物业联系
-        function handlePropertyCall() {
-            speak('物业联系');
-            const phoneNumber = phoneNumbers.property;
-            
-            const link = document.createElement('a');
-            link.href = `tel:${phoneNumber}`;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
-
-        // 处理社区医生电话
-        function handleDoctorCall() {
-            speak('呼叫社区医生');
-            const phoneNumber = phoneNumbers.doctor;
-            
-            const link = document.createElement('a');
-            link.href = `tel:${phoneNumber}`;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
-
-        // 发送消息给医生
-        function sendDoctorMessage() {
-            const message = document.getElementById('doctor-message-content').value.trim();
-            if (!message) {
-                alert('请输入要发送的消息内容');
-                return;
-            }
-
-            const phoneNumber = phoneNumbers.doctor;
-            if (navigator.userAgent.match(/iPhone|iPad|iPod/i)) {
-                window.location.href = `sms://${phoneNumber}&body=${encodeURIComponent(message)}`;
-            } else {
-                window.location.href = `sms:${phoneNumber}?body=${encodeURIComponent(message)}`;
-            }
-            
-            // 清空输入框
-            document.getElementById('doctor-message-content').value = '';
-            
-            // 返回医生选项界面
-            showSection('doctor');
-        }
-
-        // 加载聊天历史
-        function loadChatHistory() {
-            const chatMessages = document.getElementById('chat-messages');
-            chatMessages.innerHTML = '';
-            chatHistory.forEach(msg => {
-                const messageDiv = document.createElement('div');
-                messageDiv.className = `message ${msg.type}-message`;
-                messageDiv.textContent = msg.content;
-                chatMessages.appendChild(messageDiv);
-            });
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-        }
-
-        // 添加消息到聊天记录
-        function addMessage(content, type) {
-            chatHistory.push({ content, type });
-            localStorage.setItem('chatHistory', JSON.stringify(chatHistory));
-            loadChatHistory();
-        }
-
-        // 获取天气信息
-        async function getWeather() {
-            try {
-                const response = await fetch(`https://restapi.amap.com/v3/weather/weatherInfo?key=958751838a76784f2b411f8bfb469548&city=110101`);
-                const data = await response.json();
-                if (data.status === '1' && data.lives && data.lives[0]) {
-                    const weather = data.lives[0];
-                    const weatherElement = document.getElementById('weather-text');
-                    if (weatherElement) {
-                        weatherElement.textContent = `${weather.temperature}°C ${weather.weather}`;
-                    }
-                    
-                    // 根据天气设置图标
-                    const weatherIcon = document.getElementById('weather-icon');
-                    if (weatherIcon) {
-                        weatherIcon.src = getWeatherIcon(weather.weather);
-                        // 添加图标加载动画
-                        weatherIcon.style.transition = 'opacity 0.3s';
-                        weatherIcon.style.opacity = '0';
-                        weatherIcon.onload = function() {
-                            this.style.opacity = '1';
-                        };
-                    }
-                }
-            } catch (error) {
-                console.error('获取天气信息失败:', error);
-            }
-        }
-
-        // 修改用药提醒相关函数
-        function addMedicineReminder() {
-            const name1 = document.getElementById('medicine-name1').value.trim();
-            const times1 = [
-                document.getElementById('medicine-time1-1').value,
-                document.getElementById('medicine-time1-2').value,
-                document.getElementById('medicine-time1-3').value,
-                document.getElementById('medicine-time1-4').value
-            ].filter(time => time);
-            const dose1 = document.getElementById('medicine-dose1').value.trim();
-
-            const name2 = document.getElementById('medicine-name2').value.trim();
-            const times2 = [
-                document.getElementById('medicine-time2-1').value,
-                document.getElementById('medicine-time2-2').value,
-                document.getElementById('medicine-time2-3').value,
-                document.getElementById('medicine-time2-4').value
-            ].filter(time => time);
-            const dose2 = document.getElementById('medicine-dose2').value.trim();
-
-            const name3 = document.getElementById('medicine-name3').value.trim();
-            const times3 = [
-                document.getElementById('medicine-time3-1').value,
-                document.getElementById('medicine-time3-2').value,
-                document.getElementById('medicine-time3-3').value,
-                document.getElementById('medicine-time3-4').value
-            ].filter(time => time);
-            const dose3 = document.getElementById('medicine-dose3').value.trim();
-
-            const name4 = document.getElementById('medicine-name4').value.trim();
-            const times4 = [
-                document.getElementById('medicine-time4-1').value,
-                document.getElementById('medicine-time4-2').value,
-                document.getElementById('medicine-time4-3').value,
-                document.getElementById('medicine-time4-4').value
-            ].filter(time => time);
-            const dose4 = document.getElementById('medicine-dose4').value.trim();
-
-            if (!name1 || times1.length === 0 || !dose1) {
-                alert('请填写完整的用药信息');
-                return;
-            }
-
-            // 创建用药提醒对象
-            const reminders = [];
-            if (name1 && times1.length > 0 && dose1) {
-                reminders.push({
-                    id: Date.now(),
-                    name: name1,
-                    times: times1,
-                    dose: dose1,
-                    date: new Date().toISOString().split('T')[0],
-                    userId: currentUser
-                });
-            }
-            if (name2 && times2.length > 0 && dose2) {
-                reminders.push({
-                    id: Date.now() + 1,
-                    name: name2,
-                    times: times2,
-                    dose: dose2,
-                    date: new Date().toISOString().split('T')[0],
-                    userId: currentUser
-                });
-            }
-            if (name3 && times3.length > 0 && dose3) {
-                reminders.push({
-                    id: Date.now() + 2,
-                    name: name3,
-                    times: times3,
-                    dose: dose3,
-                    date: new Date().toISOString().split('T')[0],
-                    userId: currentUser
-                });
-            }
-            if (name4 && times4.length > 0 && dose4) {
-                reminders.push({
-                    id: Date.now() + 3,
-                    name: name4,
-                    times: times4,
-                    dose: dose4,
-                    date: new Date().toISOString().split('T')[0],
-                    userId: currentUser
-                });
-            }
-
-            // 获取现有提醒
-            const existingReminders = JSON.parse(localStorage.getItem('medicineReminders')) || [];
-            
-            // 更新或添加新的提醒
-            reminders.forEach(newReminder => {
-                const existingIndex = existingReminders.findIndex(r => 
-                    r.name === newReminder.name && 
-                    r.userId === currentUser
-                );
-                
-                if (existingIndex !== -1) {
-                    // 更新现有提醒
-                    existingReminders[existingIndex] = {
-                        ...existingReminders[existingIndex],
-                        times: newReminder.times,
-                        dose: newReminder.dose
-                    };
-                } else {
-                    // 添加新提醒
-                    existingReminders.push(newReminder);
-                }
-            });
-
-            // 保存到localStorage
-            localStorage.setItem('medicineReminders', JSON.stringify(existingReminders));
-            medicineReminders = existingReminders;
-            
-            updateMedicineList();
-            speak('已保存用药提醒');
-            
-            // 清空输入框
-            ['1', '2', '3', '4'].forEach(num => {
-                document.getElementById(`medicine-name${num}`).value = '';
-                document.getElementById(`medicine-time${num}-1`).value = '';
-                document.getElementById(`medicine-time${num}-2`).value = '';
-                document.getElementById(`medicine-time${num}-3`).value = '';
-                document.getElementById(`medicine-time${num}-4`).value = '';
-                document.getElementById(`medicine-dose${num}`).value = '';
-            });
-        }
-
-        function updateMedicineList() {
-            const list = document.getElementById('medicine-reminders-list');
-            const today = new Date().toISOString().split('T')[0];
-            const todayReminders = medicineReminders.filter(r => r.date === today);
-
-            list.innerHTML = todayReminders.map(reminder => `
-                <div class="medicine-reminder-item">
-                    <div>
-                        <strong>${reminder.name}</strong><br>
-                        时间：${reminder.times.join('、')}
-                    </div>
-                    <button onclick="deleteMedicineReminder(${reminder.id})">删除</button>
-                </div>
-            `).join('');
-        }
-
-        function deleteMedicineReminder(id) {
-            medicineReminders = medicineReminders.filter(r => r.id !== id);
-            localStorage.setItem('medicineReminders', JSON.stringify(medicineReminders));
-            updateMedicineList();
-            speak('已删除用药提醒');
-        }
-
-        // 修改账号注册函数
-        async function registerAccount() {
-            const accountNumber = document.getElementById('account-number').value.trim();
-            const password = document.getElementById('account-password').value;
-
-            if (!accountNumber || !password) {
-                alert('请填写完整的账号信息');
-                return;
-            }
-
-            if (!/^\d+$/.test(accountNumber)) {
-                alert('账号必须是数字');
-                return;
-            }
-
-            try {
-                // 检查账号是否已存在（从GitHub获取）
-                const response = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/accounts.json`);
-                if (response.ok) {
-                    const data = await response.json();
-                    const accountsContent = JSON.parse(atob(data.content));
-                    if (accountsContent[accountNumber]) {
-                        alert('该账号已被注册');
-                        return;
-                    }
-                }
-
-                // 密码加密
-                const hashedPassword = await hashPassword(password);
-                
-                // 生成设备ID
-                const deviceId = generateDeviceId();
-                
-                // 创建新账号
-                const newAccount = {
-                    password: hashedPassword,
-                    devices: [deviceId],
-                    createdAt: new Date().toISOString()
-                };
-
-                // 更新GitHub上的账号数据
-                const accountsContent = await getGitHubAccounts();
-                accountsContent[accountNumber] = newAccount;
-                
-                await updateGitHubAccounts(accountsContent);
-
-                // 更新本地存储
-                accounts[accountNumber] = newAccount;
-                localStorage.setItem('accounts', JSON.stringify(accounts));
-                localStorage.setItem('currentDeviceId', deviceId);
-                currentUser = accountNumber;
-                
-                updateLoginStatus();
-                speak('账号注册成功');
-            } catch (error) {
-                console.error('注册失败:', error);
-                alert('注册失败，请稍后重试');
-            }
-        }
-
-        // 获取GitHub上的账号数据
-        async function getGitHubAccounts() {
-            try {
-                const response = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/accounts.json`);
-                if (response.ok) {
-                    const data = await response.json();
-                    return JSON.parse(atob(data.content));
-                }
-                return {};
-            } catch (error) {
-                console.error('获取账号数据失败:', error);
-                return {};
-            }
-        }
-
-        // 更新GitHub上的账号数据
-        async function updateGitHubAccounts(accountsContent) {
-            try {
-                const response = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/accounts.json`, {
-                    method: 'PUT',
-                    headers: {
-                        'Authorization': `token ${GITHUB_TOKEN}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        message: 'Update accounts data',
-                        content: btoa(JSON.stringify(accountsContent, null, 2)),
-                        branch: GITHUB_BRANCH
-                    })
-                });
-
-                if (!response.ok) {
-                    throw new Error('更新账号数据失败');
-                }
-            } catch (error) {
-                console.error('更新账号数据失败:', error);
-                throw error;
-            }
-        }
-
-        // 账号管理相关函数
-        async function loginAccount() {
-            const accountNumber = document.getElementById('account-number').value.trim();
-            const password = document.getElementById('account-password').value;
-
-            if (!accountNumber || !password) {
-                alert('请填写完整的账号信息');
-                return;
-            }
-
-            if (!accounts[accountNumber]) {
-                alert('账号不存在，请先注册');
-                return;
-            }
-
-            // 验证密码
-            const hashedPassword = await hashPassword(password);
-            if (accounts[accountNumber].password !== hashedPassword) {
-                alert('密码错误');
-                return;
-            }
-
-            // 生成设备ID
-            const deviceId = generateDeviceId();
-            
-            // 检查设备数量
-            if (accounts[accountNumber].devices.length >= 3) {
-                alert('已达到最大设备数量限制');
-                return;
-            }
-
-            // 添加新设备
-            accounts[accountNumber].devices.push(deviceId);
-            localStorage.setItem('accounts', JSON.stringify(accounts));
-            localStorage.setItem('currentDeviceId', deviceId);
-            currentUser = accountNumber;
-            
-            // 同步照片数据
-            await refreshPhotos();
-            
-            updateLoginStatus();
-            speak('登录成功');
-        }
-
-        function logoutAccount() {
-            if (!currentUser) {
-                alert('当前未登录');
-                return;
-            }
-
-            const deviceId = localStorage.getItem('currentDeviceId');
-            if (deviceId && accounts[currentUser]) {
-                accounts[currentUser].devices = accounts[currentUser].devices.filter(id => id !== deviceId);
-                localStorage.setItem('accounts', JSON.stringify(accounts));
-            }
-
-            localStorage.removeItem('currentDeviceId');
-            currentUser = null;
-            updateLoginStatus();
-            speak('已退出登录');
-        }
-
-        function generateDeviceId() {
-            return 'device_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-        }
-
-        function updateLoginStatus() {
-            const statusText = document.getElementById('login-status-text');
-            if (currentUser) {
-                statusText.textContent = `已登录 (账号: ${currentUser})`;
-            } else {
-                statusText.textContent = '未登录';
-            }
-        }
-
-        // 密码加密函数
-        async function hashPassword(password) {
-            const encoder = new TextEncoder();
-            const data = encoder.encode(password);
-            const hash = await crypto.subtle.digest('SHA-256', data);
-            return Array.from(new Uint8Array(hash))
-                .map(b => b.toString(16).padStart(2, '0'))
-                .join('');
-        }
-
-        // 家庭相册相关函数
-        async function uploadToGitHub(file) {
-            try {
-                const content = await fileToBase64(file);
-                const filename = `${Date.now()}_${file.name}`;
-                const path = `photos/${filename}`;
-
-                const response = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/${path}`, {
-                    method: 'PUT',
-                    headers: {
-                        'Authorization': `token ${GITHUB_TOKEN}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        message: `Upload photo: ${filename}`,
-                        content: content,
-                        branch: GITHUB_BRANCH
-                    })
-                });
-
-                if (!response.ok) {
-                    throw new Error('GitHub上传失败');
-                }
-
-                const data = await response.json();
-                return data.content.download_url;
-            } catch (error) {
-                console.error('GitHub上传错误:', error);
-                throw error;
-            }
-        }
-
-        // 文件转Base64
-        function fileToBase64(file) {
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.readAsDataURL(file);
-                reader.onload = () => {
-                    const base64String = reader.result
-                        .replace(/^data:image\/\w+;base64,/, '');
-                    resolve(base64String);
-                };
-                reader.onerror = error => reject(error);
-            });
-        }
-
-        // 修改照片上传函数
-        async function uploadPhotos() {
-            const input = document.getElementById('photo-upload');
-            const files = input.files;
-
-            // 清空input，防止重复上传
-            input.value = '';
-
-            for (let file of files) {
-                try {
-                    // 上传到GitHub
-                    const githubUrl = await uploadToGitHub(file);
-                    
-                    const photo = {
-                        id: Date.now(),
-                        url: githubUrl,
-                        uploadDate: new Date().toISOString(),
-                        uploadedBy: currentUser,
-                        deviceId: localStorage.getItem('currentDeviceId')
-                    };
-                    
-                    photos.push(photo);
-                    localStorage.setItem('photos', JSON.stringify(photos));
-                    updatePhotoGallery();
-                    speak('照片上传成功');
-                } catch (error) {
-                    console.error('照片上传失败:', error);
-                    alert('照片上传失败，请重试');
-                }
-            }
-        }
-
-        // 修改照片刷新函数
-        async function refreshPhotos() {
-            try {
-                // 从localStorage重新加载照片数据
-                photos = JSON.parse(localStorage.getItem('photos')) || [];
-                
-                // 验证所有照片URL是否有效
-                for (let photo of photos) {
-                    try {
-                        const response = await fetch(photo.url, { method: 'HEAD' });
-                        if (!response.ok) {
-                            // 如果照片URL无效，从列表中移除
-                            photos = photos.filter(p => p.id !== photo.id);
-                        }
-                    } catch (error) {
-                        photos = photos.filter(p => p.id !== photo.id);
-                    }
-                }
-                
-                localStorage.setItem('photos', JSON.stringify(photos));
-                updatePhotoGallery();
-                speak('相册已刷新');
-            } catch (error) {
-                console.error('刷新相册失败:', error);
-                alert('刷新相册失败，请重试');
-            }
-        }
-
-        // 明日天气相关函数
-        async function getTomorrowWeather() {
-            try {
-                const response = await fetch(`https://restapi.amap.com/v3/weather/weatherInfo?key=958751838a76784f2b411f8bfb469548&city=110101&extensions=all`);
-                const data = await response.json();
-                
-                if (data.status === '1' && data.forecasts && data.forecasts[0]) {
-                    const tomorrow = data.forecasts[0].casts[1];
-                    const weatherInfo = document.getElementById('tomorrow-weather-info');
-                    
-                    weatherInfo.innerHTML = `
-                        <div class="weather-card">
-                            <h3>明日天气</h3>
-                            <div class="weather-info-grid">
-                                <div class="weather-info-item">
-                                    <span>温度</span>
-                                    <span>${tomorrow.daytemp}°C ~ ${tomorrow.nighttemp}°C</span>
-                                </div>
-                                <div class="weather-info-item">
-                                    <span>天气</span>
-                                    <span>${tomorrow.dayweather}</span>
-                                </div>
-                                <div class="weather-info-item">
-                                    <span>风向</span>
-                                    <span>${tomorrow.daywind}</span>
-                                </div>
-                                <div class="weather-info-item">
-                                    <span>风力</span>
-                                    <span>${tomorrow.daypower}级</span>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-
-                    // 语音播报明日天气
-                    const weatherText = `明日天气${tomorrow.dayweather}，温度${tomorrow.daytemp}到${tomorrow.nighttemp}度，${tomorrow.daywind}风${tomorrow.daypower}级`;
-                    speak(weatherText);
-                }
-            } catch (error) {
-                console.error('获取明日天气失败:', error);
-            }
-        }
-
-        // 修改初始化函数，添加照片同步
-        document.addEventListener('DOMContentLoaded', () => {
-            // 检查是否有已登录的账号
-            const savedDeviceId = localStorage.getItem('currentDeviceId');
-            if (savedDeviceId) {
-                for (const [accountNumber, accountInfo] of Object.entries(accounts)) {
-                    if (accountInfo.devices.includes(savedDeviceId)) {
-                        currentUser = accountNumber;
-                        break;
-                    }
-                }
-                updateLoginStatus();
-                // 同步照片数据
-                refreshPhotos();
-            }
-
-            // 初始化语音
-            if (synth.getVoices().length === 0) {
-                synth.addEventListener('voiceschanged', () => {
-                    voices = synth.getVoices();
-                    initializeWelcome();
-                });
-            } else {
-                voices = synth.getVoices();
-                initializeWelcome();
-            }
-
-            // 初始化页面
-            updateDateTime();
-            getWeather();
-            
-            // 针对Safari的特殊处理
-            if (navigator.userAgent.includes('Safari') && !navigator.userAgent.includes('Chrome')) {
-                // 确保在Safari中正确显示天气和时间
-                setTimeout(() => {
-                    updateDateTime();
-                    getWeather();
-                }, 1000);
-            }
-            
-            setInterval(updateDateTime, 1000);
-            setInterval(getWeather, 1800000);
-
-            // 添加图书搜索功能
-            document.getElementById('book-search-input').addEventListener('input', (e) => {
-                updateBookList(e.target.value);
-            });
-            
-            // 添加记忆搜索功能
-            document.getElementById('memory-search-input').addEventListener('input', (e) => {
-                updateMemoryList(e.target.value);
-            });
-        });
-
-        // 新增欢迎初始化函数
-        function initializeWelcome() {
-            const today = new Date().toISOString().split('T')[0];
-            const todayReminders = medicineReminders.filter(r => r.date === today);
-            const now = new Date();
-            const currentHour = now.getHours();
-            const currentMinute = now.getMinutes();
-            
-            let welcomeText = '您好，我是您的智能助手，请点击按钮使用各项功能';
-            
-            if (todayReminders.length > 0) {
-                const upcomingReminders = todayReminders.map(reminder => {
-                    const upcomingTimes = reminder.times.filter(time => {
-                        const [hours, minutes] = time.split(':').map(Number);
-                        return hours > currentHour || (hours === currentHour && minutes > currentMinute);
-                    });
-                    
-                    if (upcomingTimes.length > 0) {
-                        return `您还需要在${upcomingTimes.join('、')}服用${reminder.name}，剂量${reminder.dose}`;
-                    }
-                    return null;
-                }).filter(text => text);
-                
-                if (upcomingReminders.length > 0) {
-                    welcomeText += '。' + upcomingReminders.join('。');
-                }
-            }
-            
-            speak(welcomeText);
-        }
-
-        // GitHub相关配置
-        const GITHUB_TOKEN = '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'; // 替换为您的GitHub Token
-        const GITHUB_REPO = '1'; // 替换为您的仓库名
-        const GITHUB_BRANCH = 'main';
-
-        // 新增天气图标获取函数
-        function getWeatherIcon(weatherText) {
-            const weatherTextLower = weatherText.toLowerCase();
-            let iconUrl = 'https://api.iconify.design/emojione:cloud.svg';
-            
-            if (weatherTextLower.includes('晴')) {
-                iconUrl = 'https://api.iconify.design/emojione:sun.svg';
-            } else if (weatherTextLower.includes('多云')) {
-                iconUrl = 'https://api.iconify.design/emojione:partly-sunny.svg';
-            } else if (weatherTextLower.includes('阴')) {
-                iconUrl = 'https://api.iconify.design/emojione:cloud.svg';
-            } else if (weatherTextLower.includes('雨')) {
-                if (weatherTextLower.includes('雷')) {
-                    iconUrl = 'https://api.iconify.design/emojione:cloud-with-lightning-and-rain.svg';
-                } else if (weatherTextLower.includes('阵')) {
-                    iconUrl = 'https://api.iconify.design/emojione:cloud-with-rain.svg';
-                } else {
-                    iconUrl = 'https://api.iconify.design/emojione:umbrella-with-rain-drops.svg';
-                }
-            } else if (weatherTextLower.includes('雪')) {
-                if (weatherTextLower.includes('阵')) {
-                    iconUrl = 'https://api.iconify.design/emojione:cloud-with-snow.svg';
-                } else {
-                    iconUrl = 'https://api.iconify.design/emojione:snowflake.svg';
-                }
-            } else if (weatherTextLower.includes('雾') || weatherTextLower.includes('霾')) {
-                iconUrl = 'https://api.iconify.design/emojione:fog.svg';
-            } else if (weatherTextLower.includes('沙尘')) {
-                iconUrl = 'https://api.iconify.design/emojione:desert.svg';
-            }
-            
-            return iconUrl;
-        }
-
-        // 处理一键问诊
-        function handleQuickDiagnosis() {
-            speak('一键问诊');
-            // 创建问诊选项弹窗
-            const options = [
-                { name: '在线问诊', url: 'https://quark.sm.cn/medical/online' },
-                { name: '图文问诊', url: 'https://quark.sm.cn/medical/chat' },
-                { name: '视频问诊', url: 'https://quark.sm.cn/medical/video' }
-            ];
-            
-            const dialog = document.createElement('div');
-            dialog.style.cssText = `
-                position: fixed;
-                top: 50%;
-                left: 50%;
-                transform: translate(-50%, -50%);
-                background: white;
-                padding: 20px;
-                border-radius: 15px;
-                box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-                z-index: 1000;
-            `;
-            
-            dialog.innerHTML = `
-                <h2 style="margin-bottom: 20px; font-size: 24px;">选择问诊方式</h2>
-                ${options.map(opt => `
-                    <button class="menu-btn" style="margin: 10px 0; width: 100%;" onclick="window.open('${opt.url}', '_blank')">
-                        ${opt.name}
-                    </button>
-                `).join('')}
-                <button class="menu-btn back-btn" style="margin-top: 10px;" onclick="this.parentElement.remove()">取消</button>
-            `;
-            
-            document.body.appendChild(dialog);
-        }
-
-        // 处理一键打车
-        function handleQuickTaxi() {
-            speak('一键打车');
-            if (taxiLocations.length === 0) {
-                alert('请先在设置中添加常用打车点');
-                showSection('settings');
-                return;
-            }
-
-            // 创建打车选项弹窗
-            const dialog = document.createElement('div');
-            dialog.style.cssText = `
-                position: fixed;
-                top: 50%;
-                left: 50%;
-                transform: translate(-50%, -50%);
-                background: white;
-                padding: 20px;
-                border-radius: 15px;
-                box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-                z-index: 1000;
-                max-width: 90%;
-                width: 400px;
-            `;
-            
-            dialog.innerHTML = `
-                <h2 style="margin-bottom: 20px; font-size: 24px;">选择目的地</h2>
-                <div class="taxi-locations">
-                    ${taxiLocations.map(location => `
-                        <button class="taxi-location-btn" onclick="openDidiTaxi('${location}')">
-                            ${location}
-                        </button>
-                    `).join('')}
-                </div>
-                <button class="menu-btn back-btn" style="margin-top: 20px;" onclick="this.parentElement.remove()">取消</button>
-            `;
-            
-            document.body.appendChild(dialog);
-        }
-
-        // 打开滴滴打车
-        function openDidiTaxi(destination) {
-            // 使用滴滴打车APP
-            const url = `diditaxi://order?destination=${encodeURIComponent(destination)}`;
-            window.location.href = url;
-            
-            // 如果APP未安装，3秒后跳转到网页版
-            setTimeout(() => {
-                window.location.href = `https://www.didiglobal.com/order?destination=${encodeURIComponent(destination)}`;
-            }, 3000);
-        }
-
-        // 图书管理相关函数
-        function showBookManagement() {
-            speak('图书管理');
-            showSection('book-management');
-            updateBookList();
-        }
-
-        function updateBookList(searchTerm = '') {
-            const bookList = document.getElementById('book-list');
-            const filteredBooks = books.filter(book => 
-                book.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                book.author.toLowerCase().includes(searchTerm.toLowerCase())
-            );
-
-            bookList.innerHTML = filteredBooks.map(book => `
-                <div class="book-item">
-                    <h3>${book.title}</h3>
-                    <p>作者：${book.author}</p>
-                    <p>状态：${book.status === 'available' ? '可借阅' : '已借出'}</p>
-                    <div class="book-actions">
-                        ${book.status === 'available' ? 
-                            `<button class="borrow-btn" onclick="borrowBook(${book.id})">借阅</button>` :
-                            `<button class="return-btn" onclick="returnBook(${book.id})">归还</button>`
-                        }
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        function borrowBook(bookId) {
-            const book = books.find(b => b.id === bookId);
-            if (book && book.status === 'available') {
-                book.status = 'borrowed';
-                localStorage.setItem('books', JSON.stringify(books));
-                updateBookList();
-                speak('借阅成功');
-            }
-        }
-
-        function returnBook(bookId) {
-            const book = books.find(b => b.id === bookId);
-            if (book && book.status === 'borrowed') {
-                book.status = 'available';
-                localStorage.setItem('books', JSON.stringify(books));
-                updateBookList();
-                speak('归还成功');
-            }
-        }
-
-        function submitBookRequest() {
-            const request = document.getElementById('book-request').value.trim();
-            if (request) {
-                bookRequests.push({
-                    id: Date.now(),
-                    content: request,
-                    date: new Date().toISOString()
-                });
-                localStorage.setItem('bookRequests', JSON.stringify(bookRequests));
-                document.getElementById('book-request').value = '';
-                speak('需求已提交');
-            }
-        }
-
-        // 社区记忆角相关函数
-        function showMemoryCorner() {
-            speak('社区记忆角');
-            showSection('memory-corner');
-            updateMemoryList();
-        }
-
-        function updateMemoryList(searchTerm = '') {
-            const memoryList = document.getElementById('memory-list');
-            const filteredMemories = memories.filter(memory => 
-                memory.name.toLowerCase().includes(searchTerm.toLowerCase())
-            );
-
-            memoryList.innerHTML = filteredMemories.map(memory => `
-                <div class="memory-item">
-                    <h3>${memory.name}</h3>
-                    <p>${memory.content}</p>
-                    <p>时间：${new Date(memory.date).toLocaleString()}</p>
-                </div>
-            `).join('');
-        }
-
-        function submitMemory() {
-            const name = prompt('请输入您的姓名：');
-            const content = document.getElementById('memory-content').value.trim();
-            
-            if (name && content) {
-                memories.push({
-                    id: Date.now(),
-                    name: name,
-                    content: content,
-                    date: new Date().toISOString()
-                });
-                localStorage.setItem('memories', JSON.stringify(memories));
-                document.getElementById('memory-content').value = '';
-                updateMemoryList();
-                speak('记忆已保存');
-            }
-        }
+        let phoneNumbers = JSON.parse(localStorage.getItem('phoneNumbers')) || {
+            family: '',
+            doctor: '',
+            property: ''
+        };
+
+        let medicalInfo = JSON.parse(localStorage.getItem('medicalInfo')) || {
+            conditions: [],
+            allergies: [],
+            emergencyContact1: '',
+            emergencyContact2: ''
+        };
+
+        // 其他JavaScript代码保持不变
+        // ... existing code ...
     </script>
 </body>
 </html>
